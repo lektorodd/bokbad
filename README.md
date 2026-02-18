@@ -107,7 +107,7 @@ bokbad/
 - ✅ Mobile-first responsive design
 - ✅ PWA support
 
-## Deployment to one.com
+## Deployment
 
 1. **Build frontend:**
 ```bash
@@ -121,9 +121,9 @@ npm run build
 - Create `uploads/covers/` directory (writable)
 
 3. **Configure database:**
-- Create MySQL database in one.com control panel
+- Create a MySQL database on your hosting provider
 - Import `database/schema.sql`
-- Update `api/config/config.php` with credentials
+- Copy `api/config/config.example.php` to `api/config/config.php` and fill in your credentials
 
 4. **Set permissions:**
 - Ensure `uploads/covers/` is writable (755 or 777)
