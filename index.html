@@ -1,0 +1,910 @@
+<!doctype html>
+<html lang="nb">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="description" content="Track your reading journey - books read, reading, and want to read" />
+  <meta name="theme-color" content="#6366f1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Bokbad" />
+  <!-- Prevent dark mode flash -->
+  <script>
+    (function () {
+      var s = localStorage.getItem('bokbad-dark-mode');
+      var d = s !== null ? s === 'true' : window.matchMedia('(prefers-color-scheme:dark)').matches;
+      if (d) document.documentElement.classList.add('dark-mode');
+    })();
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <link rel="manifest" href="/manifest.json" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet">
+
+  <title>Bokbad - Track Your Reading</title>
+</head>
+
+<body>
+  <!-- Login View -->
+  <div id="login-view" class="view">
+    <div class="login-container">
+      <div class="login-header">
+        <div class="logo-wrapper">
+          <img src="/logo.svg" alt="Bokbad Logo" class="app-logo-large" />
+          <h1>Bokbad</h1>
+        </div>
+        <p data-i18n="app.subtitle">Track your reading journey</p>
+      </div>
+      <form id="login-form" class="login-form">
+        <div class="form-group">
+          <label for="username" data-i18n="login.username">Username</label>
+          <input type="text" id="username" name="username" required autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label for="password" data-i18n="login.password">Password</label>
+          <input type="password" id="password" name="password" required autocomplete="current-password" />
+        </div>
+        <div class="form-group form-group-inline">
+          <label class="checkbox-label">
+            <input type="checkbox" id="remember-me" checked />
+            <span data-i18n="login.rememberMe">Remember me</span>
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" data-i18n="login.submit">Log In</button>
+        <div id="login-error" class="error-message"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app" class="app hidden">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <img src="/logo.svg" alt="Bokbad Logo" class="app-logo-small" />
+        <h1 class="app-title">Bokbad</h1>
+      </div>
+      <div class="header-actions-right">
+        <button id="header-menu-btn" class="btn-icon" aria-label="Menu">⋯</button>
+        <div id="header-menu-dropdown" class="header-dropdown hidden">
+          <button id="dark-mode-toggle" class="dropdown-item">
+            <span class="dropdown-icon">🌙</span> <span data-i18n="menu.darkMode">Dark Mode</span>
+          </button>
+          <button id="settings-btn" class="dropdown-item">
+            <span class="dropdown-icon">⚙️</span> <span data-i18n="menu.settings">Settings</span>
+          </button>
+          <hr class="dropdown-divider" />
+          <button id="logout-btn" class="dropdown-item dropdown-item-danger">
+            <span class="dropdown-icon">🚪</span> <span data-i18n="menu.logout">Log Out</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+
+      <!-- Home View (default) -->
+      <div id="home-view" class="view active">
+        <!-- Streak Tracker -->
+        <div id="streak-tracker" class="streak-tracker"></div>
+
+        <!-- Reading Now -->
+        <div class="home-section">
+          <h2 class="section-title" data-i18n="home.readingNow">📖 Reading Now</h2>
+          <div id="reading-now-carousel" class="carousel-viewport" role="region"
+            aria-label="Books you are currently reading" aria-roledescription="carousel">
+            <div id="reading-now-container" class="carousel-track"></div>
+          </div>
+          <div id="carousel-dots" class="carousel-dots"></div>
+          <button id="home-log-reading-btn" class="log-reading-pill hidden">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+            <span data-i18n="home.logReading">Log Reading</span>
+          </button>
+        </div>
+
+        <!-- Reading Goal Banner -->
+        <div class="goal-banner" id="goal-widget">
+          <div class="goal-banner-ring">
+            <svg class="goal-ring" viewBox="0 0 36 36">
+              <circle class="goal-ring-bg" cx="18" cy="18" r="15.5" />
+              <circle class="goal-ring-progress" id="goal-ring-progress" cx="18" cy="18" r="15.5" />
+            </svg>
+            <span class="goal-banner-count" id="goal-count">0</span>
+          </div>
+          <div class="goal-banner-text">
+            <span class="goal-banner-title" id="goal-label" data-i18n="home.goalSet">Set a reading goal →</span>
+            <span class="goal-banner-sub" id="goal-target" data-i18n="home.goalTap">Tap to set target</span>
+          </div>
+        </div>
+
+        <!-- Up Next -->
+        <div class="home-section">
+          <h2 class="section-title" data-i18n="home.upNext">⏭️ Up Next</h2>
+          <div id="up-next-container" class="up-next-scroll">
+            <div class="empty-state-inline" data-i18n="home.emptyUpNext">No books queued up</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Library View -->
+      <div id="library-view" class="view">
+        <div class="view-header">
+          <div class="filter-tabs-row">
+            <div class="filter-tabs">
+              <button class="filter-tab active" data-status="all" data-i18n="library.all">All</button>
+              <button class="filter-tab" data-status="want-to-read" data-i18n="status.wantToRead">Want to Read</button>
+              <button class="filter-tab" data-status="up-next" data-i18n="status.upNext">Up Next</button>
+              <button class="filter-tab" data-status="reading" data-i18n="status.reading">Reading</button>
+              <button class="filter-tab" data-status="read" data-i18n="status.read">Read</button>
+            </div>
+            <div class="header-actions">
+              <button class="btn-icon" id="toggle-extra-filters" aria-label="More filters" title="More filters">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                </svg>
+              </button>
+              <div class="view-toggle">
+                <button class="btn-icon active" id="view-compact" aria-label="Compact View" title="Compact">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                  </svg>
+                </button>
+                <button class="btn-icon" id="view-expanded" aria-label="Expanded View" title="Expanded">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="18" rx="1"></rect>
+                    <line x1="14" y1="6" x2="21" y2="6"></line>
+                    <line x1="14" y1="10" x2="21" y2="10"></line>
+                    <line x1="14" y1="14" x2="19" y2="14"></line>
+                  </svg>
+                </button>
+                <button class="btn-icon" id="view-grid" aria-label="Grid View" title="Grid">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                    <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                    <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                    <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="active-filter-pills" class="active-filter-pills"></div>
+          <div id="extra-filters" class="extra-filters hidden">
+            <div class="filter-group">
+              <input type="text" id="search-input" placeholder="Search books..."
+                data-i18n-placeholder="library.searchPlaceholder" class="filter-search-input" />
+              <select id="sort-select" class="filter-select">
+                <option value="newest" data-i18n="library.newestFirst">Newest First</option>
+                <option value="title-az" data-i18n="library.titleAZ">Title A→Z</option>
+                <option value="title-za" data-i18n="library.titleZA">Title Z→A</option>
+                <option value="author" data-i18n="library.author">Author</option>
+                <option value="status" data-i18n="library.statusSort">Status</option>
+                <option value="progress" data-i18n="library.progress">Progress</option>
+                <option value="finish-date" data-i18n="library.finishDate">Finish Date</option>
+              </select>
+              <select id="genre-filter" class="filter-select">
+                <option value="" data-i18n="library.allGenres">All Genres</option>
+              </select>
+              <select id="topic-filter" class="filter-select">
+                <option value="" data-i18n="library.allTopics">All Topics</option>
+              </select>
+              <select id="audiobook-filter" class="filter-select">
+                <option value="all" data-i18n="library.allFormats">All Formats</option>
+                <option value="paper" data-i18n="format.paperFilter">📕 Paper</option>
+                <option value="ebook" data-i18n="format.ebook">📱 E-book</option>
+                <option value="audiobook" data-i18n="format.audiobook">🎧 Audiobook</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div id="books-container" class="books-container">
+          <div class="loading" data-i18n="library.loadingBooks">Loading books...</div>
+        </div>
+      </div>
+
+      <!-- Dashboard View -->
+      <div id="dashboard-view" class="view">
+        <div class="view-header">
+          <h2 data-i18n="dashboard.title">Dashboard</h2>
+        </div>
+        <div class="period-selector" id="period-selector">
+          <button class="period-btn active" data-period="all" data-i18n="dashboard.allTime">All Time</button>
+          <button class="period-btn" data-period="year" data-i18n="dashboard.thisYear">This Year</button>
+          <button class="period-btn" data-period="12m" data-i18n="dashboard.last12Months">Last 12 Months</button>
+        </div>
+        <div class="stat-status-row">
+          <div class="stat-pill"><span class="stat-pill-val" id="stat-read">0</span> <span
+              data-i18n="dashboard.read">read</span></div>
+          <div class="stat-pill"><span class="stat-pill-val" id="stat-reading">0</span> <span
+              data-i18n="dashboard.readingLabel">reading</span></div>
+          <div class="stat-pill"><span class="stat-pill-val" id="stat-upnext">0</span> <span
+              data-i18n="dashboard.upNextLabel">up next</span></div>
+          <div class="stat-pill"><span class="stat-pill-val" id="stat-want">0</span> <span
+              data-i18n="dashboard.wishlist">wishlist</span></div>
+        </div>
+        <div class="stat-metrics">
+          <div class="stat-metric">
+            <span class="stat-metric-icon">⏱</span>
+            <span class="stat-metric-val" id="stat-pace">—</span>
+            <span class="stat-metric-label" data-i18n="dashboard.daysPerBook">days/book</span>
+          </div>
+          <div class="stat-metric">
+            <span class="stat-metric-icon">📈</span>
+            <span class="stat-metric-val" id="stat-per-month">—</span>
+            <span class="stat-metric-label" data-i18n="dashboard.booksPerMonth">books/mo</span>
+          </div>
+          <div class="stat-metric">
+            <span class="stat-metric-icon">📄</span>
+            <span class="stat-metric-val" id="stat-pages">0</span>
+            <span class="stat-metric-label" data-i18n="dashboard.pagesRead">pages read</span>
+          </div>
+          <div class="stat-metric">
+            <span class="stat-metric-icon">🔥</span>
+            <span class="stat-metric-val" id="stat-streak">0</span>
+            <span class="stat-metric-label" data-i18n="dashboard.dayStreak">day streak</span>
+          </div>
+          <div class="stat-metric">
+            <span class="stat-metric-icon">🎧</span>
+            <span class="stat-metric-val" id="stat-listening">—</span>
+            <span class="stat-metric-label" data-i18n="dashboard.listened">listened</span>
+          </div>
+        </div>
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3 data-i18n="dashboard.booksRead">Books Read</h3>
+            <div class="chart-controls">
+              <label class="compare-toggle">
+                <input type="checkbox" id="compare-year-toggle" />
+                <span data-i18n="dashboard.compare">Compare</span>
+              </label>
+              <select id="year-selector" class="year-selector">
+                <!-- Populated by JS -->
+              </select>
+            </div>
+          </div>
+          <canvas id="monthly-chart"></canvas>
+        </div>
+        <div class="chart-container" id="genre-chart-container">
+          <div class="chart-header">
+            <h3 data-i18n="dashboard.genresRead">Genres Read</h3>
+          </div>
+          <canvas id="genre-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Admin View -->
+      <div id="admin-view" class="view">
+        <div class="view-header">
+          <h2 data-i18n="admin.title">Admin Panel</h2>
+        </div>
+
+        <!-- Global Stats -->
+        <div class="admin-stats-grid">
+          <div class="admin-stat-card">
+            <span class="admin-stat-icon">👥</span>
+            <span class="admin-stat-val" id="admin-stat-users">0</span>
+            <span class="admin-stat-label" data-i18n="admin.users">Users</span>
+          </div>
+          <div class="admin-stat-card">
+            <span class="admin-stat-icon">📚</span>
+            <span class="admin-stat-val" id="admin-stat-books">0</span>
+            <span class="admin-stat-label" data-i18n="admin.totalBooks">Total Books</span>
+          </div>
+          <div class="admin-stat-card">
+            <span class="admin-stat-icon">✅</span>
+            <span class="admin-stat-val" id="admin-stat-read">0</span>
+            <span class="admin-stat-label" data-i18n="admin.booksRead">Books Read</span>
+          </div>
+          <div class="admin-stat-card">
+            <span class="admin-stat-icon">📄</span>
+            <span class="admin-stat-val" id="admin-stat-pages">0</span>
+            <span class="admin-stat-label" data-i18n="admin.pagesRead">Pages Read</span>
+          </div>
+          <div class="admin-stat-card">
+            <span class="admin-stat-icon">📝</span>
+            <span class="admin-stat-val" id="admin-stat-sessions">0</span>
+            <span class="admin-stat-label" data-i18n="admin.sessions">Sessions</span>
+          </div>
+          <div class="admin-stat-card">
+            <span class="admin-stat-icon">🎧</span>
+            <span class="admin-stat-val" id="admin-stat-listening">0</span>
+            <span class="admin-stat-label" data-i18n="admin.listeningHrs">Listening Hrs</span>
+          </div>
+        </div>
+
+        <!-- User Management -->
+        <div class="admin-section">
+          <div class="admin-section-header">
+            <h3 data-i18n="admin.userManagement">User Management</h3>
+            <button id="admin-add-user-btn" class="btn btn-primary btn-sm" data-i18n="admin.addUser">+ Add User</button>
+          </div>
+          <div id="admin-users-list" class="admin-users-list">
+            <div class="loading" data-i18n="admin.loadingUsers">Loading users...</div>
+          </div>
+        </div>
+
+        <!-- Per-User Breakdown -->
+        <div class="admin-section">
+          <h3 data-i18n="admin.perUserStats">Per-User Stats</h3>
+          <div id="admin-per-user" class="admin-per-user"></div>
+        </div>
+      </div>
+
+      <!-- Activity Calendar Modal -->
+      <div id="calendar-modal" class="modal hidden">
+        <div class="modal-content detail-modal-content">
+          <div class="modal-header">
+            <h2 data-i18n="calendar.readingActivity">Reading Activity</h2>
+            <button id="calendar-close-btn" class="btn-icon" aria-label="Close">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div id="calendar-body" class="calendar-body">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Book Detail Modal (Read-Only) -->
+      <div id="detail-modal" class="modal hidden">
+        <div class="modal-content detail-modal-content">
+          <div class="modal-header">
+            <h2 id="detail-modal-title" data-i18n="book.bookDetails">Book Details</h2>
+            <div class="modal-header-actions">
+              <button id="detail-log-btn" class="btn-icon" aria-label="Log Reading" title="Log Reading">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+              </button>
+              <button id="detail-edit-btn" class="btn-icon" aria-label="Edit" title="Edit">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button id="detail-close-btn" class="btn-icon" aria-label="Close">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div id="detail-body" class="detail-body">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Add/Edit Book Modal -->
+      <div id="book-modal" class="modal hidden">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 id="modal-title" data-i18n="book.addBook">Add Book</h2>
+            <button id="modal-close" class="btn-icon" aria-label="Close">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <form id="book-form" class="book-form">
+            <input type="hidden" id="book-id" />
+
+            <div class="form-group">
+              <label for="book-isbn" data-i18n="book.isbn">ISBN (optional - auto-fill)</label>
+              <div class="isbn-input-group">
+                <input type="text" id="book-isbn" placeholder="Enter ISBN"
+                  data-i18n-placeholder="book.isbnPlaceholder" />
+                <button type="button" id="fetch-metadata-btn" class="btn btn-secondary"
+                  data-i18n="book.fetch">Fetch</button>
+                <button type="button" id="scan-isbn-btn" class="btn btn-secondary" title="Scan barcode">📷</button>
+              </div>
+            </div>
+
+            <!-- Barcode Scanner Overlay -->
+            <div id="scanner-overlay" class="scanner-overlay hidden">
+              <div class="scanner-header">
+                <span data-i18n="book.scanBarcode">Scan ISBN Barcode</span>
+                <button type="button" id="scanner-close-btn" class="btn-icon">✕</button>
+              </div>
+              <div id="scanner-viewfinder"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="book-name" data-i18n="book.title">Book Title *</label>
+              <input type="text" id="book-name" required />
+            </div>
+
+            <div class="form-group">
+              <label for="book-authors" data-i18n="book.authors">Authors</label>
+              <div class="tag-input-wrapper" id="author-input-wrapper">
+                <div class="tag-chips" id="author-chips"></div>
+                <input type="text" id="book-authors" placeholder="Type to add author..." autocomplete="off"
+                  data-i18n-placeholder="book.authorsPlaceholder" />
+                <div class="tag-suggestions hidden" id="author-suggestions"></div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="book-cover" data-i18n="book.coverImage">Cover Image</label>
+              <div class="cover-upload">
+                <input type="file" id="book-cover" accept="image/*" />
+                <div id="cover-preview" class="cover-preview hidden">
+                  <img id="cover-preview-img" src="" alt="Cover preview" />
+                  <button type="button" id="remove-cover-btn" class="btn-icon-small">×</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label data-i18n="book.genres">Genres</label>
+              <div class="genre-select-grid" id="genre-select-grid">
+                <!-- Populated by JS with clickable genre chips -->
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="book-topics" data-i18n="book.topics">Topics</label>
+              <div class="tag-input-wrapper" id="topic-input-wrapper">
+                <div class="tag-chips" id="topic-chips"></div>
+                <input type="text" id="book-topics" placeholder="Type to add topic..." autocomplete="off"
+                  data-i18n-placeholder="book.topicsPlaceholder" />
+                <div class="tag-suggestions hidden" id="topic-suggestions"></div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="book-status" data-i18n="book.statusLabel">Status *</label>
+              <select id="book-status" required>
+                <option value="want-to-read" data-i18n="status.wantToRead">Want to Read</option>
+                <option value="up-next" data-i18n="status.upNext">Up Next</option>
+                <option value="reading" data-i18n="status.reading">Reading</option>
+                <option value="read" data-i18n="status.read">Read</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="book-format" data-i18n="book.formatLabel">Format</label>
+              <select id="book-format">
+                <option value="paper" data-i18n="format.paper">📕 Paper Book</option>
+                <option value="ebook" data-i18n="format.ebook">📱 E-book</option>
+                <option value="audiobook" data-i18n="format.audiobook">🎧 Audiobook</option>
+              </select>
+              <input type="hidden" id="book-audiobook" />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group form-group-flex">
+                <label for="book-series" data-i18n="book.series">Series</label>
+                <select id="book-series">
+                  <option value="" data-i18n="book.noSeries">No series</option>
+                  <!-- Populated by JS -->
+                </select>
+              </div>
+              <div class="form-group form-group-small">
+                <label for="book-series-order" data-i18n="book.bookNumber">Book #</label>
+                <input type="number" id="book-series-order" min="1" placeholder="#" />
+              </div>
+              <button type="button" id="new-series-btn" class="btn btn-secondary btn-sm"
+                title="Create new series">+</button>
+            </div>
+            <div class="form-group" id="total-pages-group">
+              <label for="book-total-pages" data-i18n="book.totalPages">Total Pages</label>
+              <input type="number" id="book-total-pages" min="1" placeholder="Number of pages"
+                data-i18n-placeholder="book.totalPagesPlaceholder" />
+            </div>
+
+            <div class="form-group hidden" id="total-duration-group">
+              <label data-i18n="book.totalDuration">Total Duration</label>
+              <div class="duration-input-group">
+                <input type="number" id="book-total-duration-hours" min="0" placeholder="Hours" class="duration-input"
+                  data-i18n-placeholder="book.hoursPlaceholder" />
+                <span class="duration-separator" data-i18n="time.h">h</span>
+                <input type="number" id="book-total-duration-minutes" min="0" max="59" placeholder="Min"
+                  class="duration-input" data-i18n-placeholder="book.minutesPlaceholder" />
+                <span class="duration-separator" data-i18n="time.m">m</span>
+              </div>
+            </div>
+
+            <div class="form-group" id="current-page-group">
+              <label for="book-current-page" data-i18n="book.currentPage">Current Page</label>
+              <input type="number" id="book-current-page" min="0" placeholder="Page you're on"
+                data-i18n-placeholder="book.currentPagePlaceholder" />
+            </div>
+
+            <div class="form-group hidden" id="current-duration-group">
+              <label data-i18n="book.currentPosition">Current Position</label>
+              <div class="duration-input-group">
+                <input type="number" id="book-current-duration-hours" min="0" placeholder="Hours" class="duration-input"
+                  data-i18n-placeholder="book.hoursPlaceholder" />
+                <span class="duration-separator" data-i18n="time.h">h</span>
+                <input type="number" id="book-current-duration-minutes" min="0" max="59" placeholder="Min"
+                  class="duration-input" data-i18n-placeholder="book.minutesPlaceholder" />
+                <span class="duration-separator" data-i18n="time.m">m</span>
+              </div>
+            </div>
+
+            <div class="form-group hidden" id="current-percentage-group">
+              <label for="book-current-percentage" data-i18n="book.currentPercentage">Current Percentage</label>
+              <input type="number" id="book-current-percentage" min="0" max="100" step="0.1" placeholder="% complete"
+                data-i18n-placeholder="book.percentPlaceholder" />
+            </div>
+
+            <div class="form-group">
+              <label for="book-start-date" data-i18n="book.startDate">Start Date</label>
+              <input type="date" id="book-start-date" />
+            </div>
+
+            <div class="form-group">
+              <label for="book-finish-date" data-i18n="book.finishDate">Finish Date</label>
+              <input type="date" id="book-finish-date" />
+            </div>
+
+            <div class="form-group">
+              <label for="book-thoughts" data-i18n="book.thoughts">Thoughts / Key Takeaways</label>
+              <textarea id="book-thoughts" rows="4" placeholder="Your reflections, favorite quotes, key learnings..."
+                data-i18n-placeholder="book.thoughtsPlaceholder"></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" id="delete-book-btn" class="btn btn-danger hidden"
+                data-i18n="book.delete">Delete</button>
+              <div class="form-actions-right">
+                <button type="button" id="cancel-book-btn" class="btn btn-secondary"
+                  data-i18n="book.cancel">Cancel</button>
+                <button type="submit" class="btn btn-primary" data-i18n="book.save">Save</button>
+              </div>
+            </div>
+            <div id="form-error" class="error-message"></div>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-view="home">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        <span data-i18n="nav.home">Home</span>
+      </button>
+      <button class="nav-item" data-view="library">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+        <span data-i18n="nav.library">Library</span>
+      </button>
+      <button class="nav-item" data-view="dashboard">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="20" x2="18" y2="10"></line>
+          <line x1="12" y1="20" x2="12" y2="4"></line>
+          <line x1="6" y1="20" x2="6" y2="14"></line>
+        </svg>
+        <span data-i18n="nav.dashboard">Dashboard</span>
+      </button>
+      <button class="nav-item hidden" id="admin-nav-btn" data-view="admin">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1.08z">
+          </path>
+        </svg>
+        <span data-i18n="nav.admin">Admin</span>
+      </button>
+    </nav>
+
+    <!-- Floating Action Button -->
+    <button id="add-book-btn" class="fab" aria-label="Add book">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+    </button>
+
+    <!-- Reading Session Modal -->
+    <div id="session-modal" class="modal hidden">
+      <div class="modal-content session-modal-content">
+        <!-- Immersive Timer View -->
+        <div id="session-immersive" class="session-immersive hidden">
+          <div class="session-bg-cover" id="session-bg-cover"></div>
+          <div class="session-bg-overlay"></div>
+          <button class="session-close-float btn-icon" id="session-immersive-close" aria-label="Close">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+          <div class="session-timer-content">
+            <div class="timer-ring-container">
+              <svg class="timer-ring" viewBox="0 0 200 200">
+                <circle class="timer-ring-bg" cx="100" cy="100" r="90" />
+                <circle class="timer-ring-progress" id="timer-ring-el" cx="100" cy="100" r="90" />
+              </svg>
+              <div class="timer-center">
+                <span class="timer-time" id="timer-elapsed-immersive">00:00</span>
+                <span class="timer-sub" data-i18n="session.reading">reading</span>
+              </div>
+            </div>
+            <div class="session-timer-book">
+              <h3 class="session-timer-title" id="session-timer-title"></h3>
+              <span class="session-timer-author" id="session-timer-author"></span>
+              <span class="session-timer-progress" id="session-timer-progress"></span>
+            </div>
+            <div class="session-timer-controls">
+              <button type="button" class="timer-ctrl-btn timer-ctrl-pause" id="timer-pause-btn" title="Pause">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="6" y="4" width="4" height="16" rx="1" />
+                  <rect x="14" y="4" width="4" height="16" rx="1" />
+                </svg>
+              </button>
+              <button type="button" class="timer-ctrl-btn timer-ctrl-stop" id="timer-stop-btn" title="Stop & Log">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="6" y="6" width="12" height="12" rx="2" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick-Log / Post-Timer Form -->
+        <div id="session-form-section" class="session-form-section">
+          <div class="modal-header">
+            <h2 data-i18n="session.logReading">Log Reading</h2>
+            <button id="session-close-btn" class="btn-icon" aria-label="Close">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <form id="session-form">
+            <input type="hidden" id="session-book-id" />
+            <div class="session-book-header" id="session-book-header">
+              <img class="session-book-cover" id="session-book-cover-img" src="" alt="" />
+              <div class="session-book-meta">
+                <strong id="session-book-name"></strong>
+                <span class="session-book-pages" id="session-book-pages"></span>
+              </div>
+            </div>
+            <button type="button" id="timer-start-btn" class="session-start-timer-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              <span data-i18n="session.startTimer">Start Reading Timer</span>
+            </button>
+            <div class="form-group">
+              <label for="session-pages" id="session-input-label" data-i18n="session.pageReached">Page reached *</label>
+              <input type="number" id="session-pages" min="0" step="any" required placeholder="What page are you on?" />
+            </div>
+            <div class="form-group">
+              <label for="session-date" data-i18n="session.date">Date</label>
+              <input type="date" id="session-date" />
+            </div>
+            <div class="form-group" id="session-duration-group">
+              <label for="session-duration" data-i18n="session.duration">Duration (minutes)</label>
+              <input type="number" id="session-duration" min="1" placeholder="Optional"
+                data-i18n-placeholder="session.durationOptional" />
+            </div>
+            <div class="form-group">
+              <label for="session-notes" data-i18n="session.notes">Notes</label>
+              <textarea id="session-notes" rows="2" placeholder="Optional reading notes..."
+                data-i18n-placeholder="session.notesPlaceholder"></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="button" id="session-cancel-btn" class="btn btn-secondary"
+                data-i18n="session.cancel">Cancel</button>
+              <button type="submit" class="btn btn-primary" data-i18n="session.save">Save</button>
+            </div>
+            <div id="session-error" class="error-message"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Timer Chip (floating in header) -->
+    <div id="timer-chip" class="timer-chip hidden">
+      <span class="timer-chip-icon">⏱️</span>
+      <span id="timer-chip-time">00:00</span>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 data-i18n="settings.title">Settings</h2>
+          <button id="settings-close-btn" class="btn-icon" aria-label="Close">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="settings-body">
+          <h3 data-i18n="settings.language">🌐 Language</h3>
+          <div class="form-group">
+            <select id="language-select" class="filter-select">
+              <option value="en">English</option>
+              <option value="no">Norsk</option>
+            </select>
+          </div>
+
+          <hr />
+
+          <h3 data-i18n="settings.readingGoal">📚 Reading Goal</h3>
+          <div class="form-row">
+            <div class="form-group form-group-flex">
+              <label for="goal-target-books" data-i18n="settings.booksTarget">Books target</label>
+              <input type="number" id="goal-target-books" min="1" placeholder="e.g. 24"
+                data-i18n-placeholder="settings.booksPlaceholder" />
+            </div>
+            <div class="form-group form-group-flex">
+              <label for="goal-target-pages" data-i18n="settings.pagesTarget">Pages target</label>
+              <input type="number" id="goal-target-pages" min="1" placeholder="Optional"
+                data-i18n-placeholder="settings.pagesPlaceholder" />
+            </div>
+          </div>
+          <button type="button" id="save-goal-btn" class="btn btn-primary" data-i18n="settings.saveGoal">Save
+            Goal</button>
+
+          <hr />
+
+          <h3 data-i18n="settings.changePassword">🔑 Change Password</h3>
+          <div class="form-group">
+            <label for="current-password" data-i18n="settings.currentPassword">Current Password</label>
+            <input type="password" id="current-password" placeholder="Enter current password"
+              autocomplete="current-password" data-i18n-placeholder="settings.currentPasswordPlaceholder" />
+          </div>
+          <div class="form-group">
+            <label for="new-password" data-i18n="settings.newPassword">New Password</label>
+            <input type="password" id="new-password" placeholder="Enter new password" autocomplete="new-password"
+              data-i18n-placeholder="settings.newPasswordPlaceholder" />
+          </div>
+          <div class="form-group">
+            <label for="confirm-password" data-i18n="settings.confirmPassword">Confirm New Password</label>
+            <input type="password" id="confirm-password" placeholder="Confirm new password" autocomplete="new-password"
+              data-i18n-placeholder="settings.confirmPasswordPlaceholder" />
+          </div>
+          <button type="button" id="change-password-btn" class="btn btn-primary"
+            data-i18n="settings.changePasswordBtn">Change Password</button>
+          <div id="password-status" class="error-message"></div>
+
+          <hr />
+
+          <h3 data-i18n="settings.dataBackup">💾 Data Backup</h3>
+          <div class="settings-actions">
+            <button type="button" id="export-data-btn" class="btn btn-secondary" data-i18n="settings.exportData">📥
+              Export Data</button>
+            <div class="import-group">
+              <input type="file" id="import-data-file" accept=".json" class="hidden" />
+              <button type="button" id="import-data-btn" class="btn btn-secondary" data-i18n="settings.importData">📤
+                Import Data</button>
+            </div>
+          </div>
+          <div id="import-status" class="import-status hidden"></div>
+
+          <hr />
+
+          <h3 data-i18n="settings.reportIssue">🐛 Report Issue</h3>
+          <p class="settings-description" data-i18n="settings.reportIssueDesc">Found a bug or have a suggestion? Let us
+            know on GitHub.</p>
+          <a href="https://github.com/lektorodd/bokbad/issues/new" target="_blank" rel="noopener"
+            class="btn btn-secondary report-issue-btn" id="report-issue-btn" data-i18n="settings.reportIssueBtn">🐛
+            Report Issue on GitHub</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin: Add/Edit User Modal -->
+    <div id="user-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="user-modal-title" data-i18n="admin.addUserTitle">Add User</h2>
+          <button id="user-modal-close" class="btn-icon" aria-label="Close">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <form id="user-form">
+          <input type="hidden" id="user-edit-id" />
+          <div class="form-group">
+            <label for="user-username" data-i18n="admin.usernameLabel">Username *</label>
+            <input type="text" id="user-username" required autocomplete="off" />
+          </div>
+          <div class="form-group" id="user-password-group">
+            <label for="user-password" data-i18n="admin.passwordLabel">Password *</label>
+            <input type="password" id="user-password" autocomplete="new-password" />
+          </div>
+          <div class="form-group">
+            <label for="user-display-name" data-i18n="admin.displayName">Display Name</label>
+            <input type="text" id="user-display-name" placeholder="Optional"
+              data-i18n-placeholder="admin.displayNamePlaceholder" />
+          </div>
+          <div class="form-group">
+            <label for="user-role" data-i18n="admin.role">Role</label>
+            <select id="user-role">
+              <option value="user" data-i18n="admin.roleUser">User</option>
+              <option value="admin" data-i18n="admin.roleAdmin">Admin</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="button" id="user-cancel-btn" class="btn btn-secondary"
+              data-i18n="admin.cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary" data-i18n="admin.save">Save</button>
+          </div>
+          <div id="user-form-error" class="error-message"></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Admin: Reset Password Modal -->
+    <div id="reset-pw-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 data-i18n="admin.resetPassword">Reset Password</h2>
+          <button id="reset-pw-close" class="btn-icon" aria-label="Close">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <form id="reset-pw-form">
+          <input type="hidden" id="reset-pw-user-id" />
+          <p id="reset-pw-username-label" class="modal-subtitle"></p>
+          <div class="form-group">
+            <label for="reset-pw-new" data-i18n="admin.newPasswordLabel">New Password *</label>
+            <input type="password" id="reset-pw-new" required autocomplete="new-password" />
+          </div>
+          <div class="form-group">
+            <label for="reset-pw-confirm" data-i18n="admin.confirmPasswordLabel">Confirm Password *</label>
+            <input type="password" id="reset-pw-confirm" required autocomplete="new-password" />
+          </div>
+          <div class="form-actions">
+            <button type="button" id="reset-pw-cancel" class="btn btn-secondary"
+              data-i18n="admin.cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary" data-i18n="admin.resetPasswordBtn">Reset Password</button>
+          </div>
+          <div id="reset-pw-error" class="error-message"></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast-container" class="toast-container"></div>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => { });
+      });
+    }
+  </script>
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
