@@ -9,6 +9,7 @@ dist/
 .env
 .env.local
 api/config/config.php
+deploy.sh
 
 # IDE
 .vscode/

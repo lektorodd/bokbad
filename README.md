@@ -1,4 +1,4 @@
-# Bokbad - Book Tracking App ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+# Bokbad - Book Tracking App ![Version](https://img.shields.io/badge/version-1.9.0-blue.svg)
 
 A self-hosted, mobile-first web app for tracking your reading life. Keep a personal library of books you've read, are reading, or want to read — log reading sessions, set yearly goals, track streaks, and visualize your progress with charts and statistics. Supports paper books, e-books, and audiobooks with format-specific progress tracking, ISBN barcode scanning, and multi-language support (English & Norwegian).
 
@@ -93,19 +93,30 @@ bokbad/
 ## Features
 
 - ✅ User authentication
+- ✅ Multi-user support with admin panel
 - ✅ Add/edit/delete books
 - ✅ Multiple authors support
 - ✅ Cover image upload from camera/gallery
-- ✅ Tags for categorization
-- ✅ Three reading statuses (Want to Read, Reading, Read)
+- ✅ Genre and topic categorization
+- ✅ Three book formats (paper, e-book, audiobook) with format-specific progress
+- ✅ Four reading statuses (Want to Read, Up Next, Reading, Read)
 - ✅ Start and finish dates
-- ✅ Thoughts/key takeaways notes
-- ✅ ISBN metadata lookup (Google Books API)
-- ✅ Search and filter books
-- ✅ Dashboard with statistics
-- ✅ Monthly reading chart
+- ✅ Thoughts/key takeaways notes (Markdown support)
+- ✅ ISBN metadata lookup (Google Books + Open Library)
+- ✅ ISBN barcode scanning
+- ✅ Search, filter, and sort books
+- ✅ Dashboard with statistics and charts
+- ✅ Reading sessions / habit tracking
+- ✅ Reading streaks
+- ✅ Reading goals (yearly books & pages)
+- ✅ Series tracking
+- ✅ Activity calendar
+- ✅ Export/import data (backup & restore)
+- ✅ Dark mode
+- ✅ Multi-language support (English & Norwegian)
 - ✅ Mobile-first responsive design
 - ✅ PWA support
+- ✅ Pull-to-refresh & swipe gestures
 
 ## Deployment
 
@@ -177,11 +188,6 @@ If you see CORS errors, ensure `api/config/config.php` has correct CORS headers 
 
 ## Future Enhancements
 
-- [ ] Habit tracking (daily reading logs)
-- [ ] Reading streaks
-- [ ] Reading goals
-- [ ] Export/import data
-- [ ] Dark mode
 - [ ] Social features
 - [ ] Goodreads import
 

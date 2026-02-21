@@ -80,6 +80,10 @@
           <button id="settings-btn" class="dropdown-item">
             <span class="dropdown-icon">⚙️</span> <span data-i18n="menu.settings">Settings</span>
           </button>
+          <a id="report-issue-menu-btn" class="dropdown-item" href="https://github.com/lektorodd/bokbad/issues"
+            target="_blank" rel="noopener">
+            <span class="dropdown-icon">🐛</span> <span data-i18n="menu.reportIssue">Report Issue</span>
+          </a>
           <hr class="dropdown-divider" />
           <button id="logout-btn" class="dropdown-item dropdown-item-danger">
             <span class="dropdown-icon">🚪</span> <span data-i18n="menu.logout">Log Out</span>
@@ -224,6 +228,7 @@
           <button class="period-btn active" data-period="all" data-i18n="dashboard.allTime">All Time</button>
           <button class="period-btn" data-period="year" data-i18n="dashboard.thisYear">This Year</button>
           <button class="period-btn" data-period="12m" data-i18n="dashboard.last12Months">Last 12 Months</button>
+          <button class="period-btn" data-period="30d" data-i18n="dashboard.last30Days">Last 30 Days</button>
         </div>
         <div class="stat-status-row">
           <div class="stat-pill"><span class="stat-pill-val" id="stat-read">0</span> <span
@@ -262,7 +267,14 @@
             <span class="stat-metric-label" data-i18n="dashboard.listened">listened</span>
           </div>
         </div>
-        <div class="chart-container">
+        <!-- Daily Activity Chart (30-day view) -->
+        <div class="chart-container hidden" id="daily-chart-container">
+          <div class="chart-header">
+            <h3 data-i18n="dashboard.dailyActivity">Daily Activity</h3>
+          </div>
+          <canvas id="daily-activity-chart"></canvas>
+        </div>
+        <div class="chart-container" id="monthly-chart-container">
           <div class="chart-header">
             <h3 data-i18n="dashboard.booksRead">Books Read</h3>
             <div class="chart-controls">
@@ -369,8 +381,8 @@
             <div class="modal-header-actions">
               <button id="detail-log-btn" class="btn-icon" aria-label="Log Reading" title="Log Reading">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 20h9" />
-                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
                 </svg>
               </button>
               <button id="detail-edit-btn" class="btn-icon" aria-label="Edit" title="Edit">
@@ -694,9 +706,21 @@
               </svg>
               <span data-i18n="session.startTimer">Start Reading Timer</span>
             </button>
-            <div class="form-group">
+            <div class="form-group" id="session-pages-group">
               <label for="session-pages" id="session-input-label" data-i18n="session.pageReached">Page reached *</label>
-              <input type="number" id="session-pages" min="0" step="any" required placeholder="What page are you on?" />
+              <input type="number" id="session-pages" min="0" step="any" placeholder="What page are you on?" />
+            </div>
+            <div class="form-group hidden" id="session-audiobook-position-group">
+              <label id="session-position-label" data-i18n="session.currentPosition">Current position *</label>
+              <div class="duration-input-group">
+                <input type="number" id="session-position-hours" min="0" placeholder="Hours" class="duration-input"
+                  data-i18n-placeholder="book.hoursPlaceholder" />
+                <span class="duration-separator" data-i18n="time.h">h</span>
+                <input type="number" id="session-position-minutes" min="0" max="59" placeholder="Min"
+                  class="duration-input" data-i18n-placeholder="book.minutesPlaceholder" />
+                <span class="duration-separator" data-i18n="time.m">m</span>
+              </div>
+              <span class="session-position-hint" id="session-position-hint"></span>
             </div>
             <div class="form-group">
               <label for="session-date" data-i18n="session.date">Date</label>

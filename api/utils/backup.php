@@ -137,7 +137,7 @@ if ($method === 'GET') {
 
                 $stmt = $db->prepare("
                     INSERT INTO bokbad_reading_sessions 
-                    (user_id, book_id, session_date, pages_read, duration_min, notes)
+                    (user_id, book_id, session_date, pages_read, duration_minutes, notes)
                     VALUES (?, ?, ?, ?, ?, ?)
                 ");
                 $stmt->execute([
@@ -145,7 +145,7 @@ if ($method === 'GET') {
                     $bookId,
                     $session['session_date'],
                     $session['pages_read'] ?? 0,
-                    $session['duration_min'] ?? null,
+                    $session['duration_minutes'] ?? $session['duration_min'] ?? null,
                     $session['notes'] ?? null,
                 ]);
                 $imported['sessions']++;
@@ -175,7 +175,8 @@ if ($method === 'GET') {
 
     } catch (Exception $e) {
         $db->rollBack();
-        sendError('Import failed: ' . $e->getMessage());
+        error_log('Backup import error: ' . $e->getMessage());
+        sendError('Import failed — check server logs for details');
     }
 
 } else {

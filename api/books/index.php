@@ -28,6 +28,25 @@ switch ($method) {
         sendError('Method not allowed', 405);
 }
 
+// Normalize book row from DB to typed JSON response
+function serializeBook($book) {
+    $book['authors'] = json_decode($book['authors'] ?? '[]');
+    $book['genres'] = json_decode($book['genres'] ?? '[]');
+    $book['topics'] = json_decode($book['topics'] ?? '[]');
+    $book['id'] = (int)$book['id'];
+    $book['user_id'] = (int)$book['user_id'];
+    $book['is_audiobook'] = (bool)$book['is_audiobook'];
+    $book['format'] = $book['format'] ?? 'paper';
+    $book['total_pages'] = $book['total_pages'] ? (int)$book['total_pages'] : null;
+    $book['current_page'] = (int)($book['current_page'] ?? 0);
+    $book['total_duration_min'] = $book['total_duration_min'] ? (int)$book['total_duration_min'] : null;
+    $book['current_duration_min'] = (int)($book['current_duration_min'] ?? 0);
+    $book['current_percentage'] = (float)($book['current_percentage'] ?? 0);
+    $book['series_id'] = $book['series_id'] ? (int)$book['series_id'] : null;
+    $book['series_order'] = $book['series_order'] ? (int)$book['series_order'] : null;
+    return $book;
+}
+
 // GET all bokbad_books with optional filters
 function handleGetBooks($db, $userId) {
     $status = $_GET['status'] ?? null;
@@ -77,23 +96,8 @@ function handleGetBooks($db, $userId) {
     $stmt->execute($params);
     $bokbad_books = $stmt->fetchAll();
     
-    // Parse JSON fields
-    foreach ($bokbad_books as &$book) {
-        $book['authors'] = json_decode($book['authors'] ?? '[]');
-        $book['genres'] = json_decode($book['genres'] ?? '[]');
-        $book['topics'] = json_decode($book['topics'] ?? '[]');
-        $book['id'] = (int)$book['id'];
-        $book['user_id'] = (int)$book['user_id'];
-        $book['is_audiobook'] = (bool)$book['is_audiobook'];
-        $book['format'] = $book['format'] ?? 'paper';
-        $book['total_pages'] = $book['total_pages'] ? (int)$book['total_pages'] : null;
-        $book['current_page'] = (int)($book['current_page'] ?? 0);
-        $book['total_duration_min'] = $book['total_duration_min'] ? (int)$book['total_duration_min'] : null;
-        $book['current_duration_min'] = (int)($book['current_duration_min'] ?? 0);
-        $book['current_percentage'] = (float)($book['current_percentage'] ?? 0);
-        $book['series_id'] = $book['series_id'] ? (int)$book['series_id'] : null;
-        $book['series_order'] = $book['series_order'] ? (int)$book['series_order'] : null;
-    }
+    // Parse JSON fields and cast types
+    $bokbad_books = array_map('serializeBook', $bokbad_books);
     
     sendSuccess(['books' => $bokbad_books]);
 }
@@ -197,19 +201,7 @@ function handleCreateBook($db, $userId) {
     $stmt->execute([$bookId]);
     $book = $stmt->fetch();
     
-    $book['authors'] = json_decode($book['authors'] ?? '[]');
-    $book['genres'] = json_decode($book['genres'] ?? '[]');
-    $book['topics'] = json_decode($book['topics'] ?? '[]');
-    $book['id'] = (int)$book['id'];
-    $book['is_audiobook'] = (bool)$book['is_audiobook'];
-    $book['format'] = $book['format'] ?? 'paper';
-    $book['total_pages'] = $book['total_pages'] ? (int)$book['total_pages'] : null;
-    $book['current_page'] = (int)($book['current_page'] ?? 0);
-    $book['total_duration_min'] = $book['total_duration_min'] ? (int)$book['total_duration_min'] : null;
-    $book['current_duration_min'] = (int)($book['current_duration_min'] ?? 0);
-    $book['current_percentage'] = (float)($book['current_percentage'] ?? 0);
-    $book['series_id'] = $book['series_id'] ? (int)$book['series_id'] : null;
-    $book['series_order'] = $book['series_order'] ? (int)$book['series_order'] : null;
+    $book = serializeBook($book);
     
     sendSuccess(['book' => $book], 201);
 }
@@ -405,19 +397,7 @@ function handleUpdateBook($db, $userId) {
     $stmt->execute([$bookId]);
     $book = $stmt->fetch();
     
-    $book['authors'] = json_decode($book['authors'] ?? '[]');
-    $book['genres'] = json_decode($book['genres'] ?? '[]');
-    $book['topics'] = json_decode($book['topics'] ?? '[]');
-    $book['id'] = (int)$book['id'];
-    $book['is_audiobook'] = (bool)$book['is_audiobook'];
-    $book['format'] = $book['format'] ?? 'paper';
-    $book['total_pages'] = $book['total_pages'] ? (int)$book['total_pages'] : null;
-    $book['current_page'] = (int)($book['current_page'] ?? 0);
-    $book['total_duration_min'] = $book['total_duration_min'] ? (int)$book['total_duration_min'] : null;
-    $book['current_duration_min'] = (int)($book['current_duration_min'] ?? 0);
-    $book['current_percentage'] = (float)($book['current_percentage'] ?? 0);
-    $book['series_id'] = $book['series_id'] ? (int)$book['series_id'] : null;
-    $book['series_order'] = $book['series_order'] ? (int)$book['series_order'] : null;
+    $book = serializeBook($book);
     
     sendSuccess(['book' => $book]);
 }

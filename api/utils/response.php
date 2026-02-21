@@ -47,5 +47,5 @@ function validateRequired($data, $fields) {
 }
 
 function sanitizeString($str) {
-    return htmlspecialchars(trim($str), ENT_QUOTES, 'UTF-8');
+    return trim($str);
 }

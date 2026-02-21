@@ -139,8 +139,9 @@ class BookManager {
 
         // Apply topic filter
         if (this.currentTopicFilter) {
+            const tf = this.currentTopicFilter.toLowerCase();
             filtered = filtered.filter(book =>
-                book.topics && book.topics.includes(this.currentTopicFilter)
+                book.topics && book.topics.some(t => t.toLowerCase() === tf)
             );
         }
 

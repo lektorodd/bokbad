@@ -19,6 +19,7 @@
     "menu": {
         "darkMode": "Dark Mode",
         "settings": "Settings",
+        "reportIssue": "Report Issue",
         "logout": "Log Out"
     },
     "home": {
@@ -128,7 +129,8 @@
         "startTimer": "Start Reading Timer",
         "pageReached": "Page reached *",
         "pageCurrently": "Currently at page {{page}}",
-        "timeListened": "Time listened (minutes) *",
+        "timeListened": "Time listened *",
+        "currentPosition": "Current position *",
         "timeCurrently": "Currently at {{time}}",
         "percentComplete": "Percentage complete *",
         "percentCurrently": "Currently at {{percent}}%",
@@ -162,7 +164,16 @@
         "booksRead": "Books Read",
         "compare": "Compare",
         "genresRead": "Genres Read",
-        "booksReadChart": "Books Read"
+        "booksReadChart": "Books Read",
+        "last30Days": "Last 30 Days",
+        "dailyActivity": "Daily Activity",
+        "readingTime": "Reading",
+        "listeningTime": "Listening",
+        "daysActive": "days active",
+        "started": "started",
+        "finished": "finished",
+        "totalTime": "total time",
+        "minutes": "min"
     },
     "settings": {
         "title": "Settings",

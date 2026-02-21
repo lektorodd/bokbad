@@ -19,6 +19,7 @@
     "menu": {
         "darkMode": "Mørk modus",
         "settings": "Innstillinger",
+        "reportIssue": "Rapporter feil",
         "logout": "Logg ut"
     },
     "home": {
@@ -128,7 +129,8 @@
         "startTimer": "Start lesetimer",
         "pageReached": "Side nådd *",
         "pageCurrently": "Nå på side {{page}}",
-        "timeListened": "Tid lyttet (minutter) *",
+        "timeListened": "Tid lyttet *",
+        "currentPosition": "Nåværende posisjon *",
         "timeCurrently": "Nå på {{time}}",
         "percentComplete": "Prosent fullført *",
         "percentCurrently": "Nå på {{percent}}%",
@@ -162,7 +164,16 @@
         "booksRead": "Bøker lest",
         "compare": "Sammenlign",
         "genresRead": "Sjangre lest",
-        "booksReadChart": "Bøker lest"
+        "booksReadChart": "Bøker lest",
+        "last30Days": "Siste 30 dagar",
+        "dailyActivity": "Dagleg aktivitet",
+        "readingTime": "Lesing",
+        "listeningTime": "Lytting",
+        "daysActive": "aktive dagar",
+        "started": "starta",
+        "finished": "fullført",
+        "totalTime": "total tid",
+        "minutes": "min"
     },
     "settings": {
         "title": "Innstillinger",

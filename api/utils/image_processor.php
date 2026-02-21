@@ -34,9 +34,8 @@ class ImageProcessor {
             mkdir(UPLOAD_DIR, 0755, true);
         }
         
-        // Generate unique filename
-        $extension = self::getExtensionFromMime($mimeType);
-        $filename = uniqid('cover_', true) . '.' . $extension;
+        // Generate unique filename (always .jpg since we save as JPEG)
+        $filename = uniqid('cover_', true) . '.jpg';
         $filepath = UPLOAD_DIR . $filename;
         
         // Process and save image

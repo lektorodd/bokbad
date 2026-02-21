@@ -47,6 +47,11 @@ class API {
     return response.json();
   }
 
+  // Proxy remote cover image (download + cache locally)
+  static async proxyCover(url) {
+    return this.post('/upload/proxy_cover.php', { url });
+  }
+
   // Metadata
   static async fetchMetadata(isbn) {
     return this.get(`/metadata/isbn.php?isbn=${encodeURIComponent(isbn)}`);
@@ -87,6 +92,10 @@ class API {
 
   static async getStreakData(days = 10) {
     return this.get(`/stats/streak.php?days=${days}`);
+  }
+
+  static async getDailyActivity(days = 30) {
+    return this.get(`/stats/daily_activity.php?days=${days}`);
   }
 
   static async getActivityCalendar(year, month) {

@@ -35,7 +35,9 @@ foreach ($rows as $row) {
     $bookTopics = json_decode($row['topics'] ?? '[]', true);
     if (is_array($bookTopics)) {
         foreach ($bookTopics as $t) {
-            if ($t && !in_array($t, $topics)) {
+            $tLower = strtolower(trim($t));
+            $existingLower = array_map('strtolower', $topics);
+            if ($t && !in_array($tLower, $existingLower)) {
                 $topics[] = $t;
             }
         }

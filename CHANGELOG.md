@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-02-21
+
+### Added
+- **30-Day Dashboard View** — new "Last 30 Days" filter with stacked daily activity bar chart (reading vs. listening minutes) and period summary stats (days active, books finished, total time).
+- **Cover Image Proxy** — ISBN-fetched cover images are now downloaded and cached locally, eliminating lag on every page load (`api/upload/proxy_cover.php`).
+- **Report Issue** — 🐛 link in the overflow menu opens GitHub Issues for quick bug reporting.
+- **Audiobook Position Input** — replaced plain number field with hh:mm time-position inputs for audiobook reading sessions, with a hint showing the current position.
+
+### Changed
+- **Log Reading Icon** — replaced pencil/edit icon with a clock icon to visually distinguish "Log Reading" from "Edit Book".
+- **Session Validation** — page/percentage/position inputs are now validated per format before submission instead of a single generic `required` check.
+- **Database Schema** — consolidated schema file now includes all migrations through v6 (user roles, display names, series & goals tables, series columns on books).
+
+### Fixed
+- Timer start button is now hidden for audiobooks (time is tracked externally).
+- Removed unused legacy files (`src/counter.js`, `src/javascript.svg`).
+
 ## [1.8.0] - 2026-02-15
 
 ### Changed

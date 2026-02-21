@@ -12,6 +12,7 @@ Chart.register(...registerables);
 // Global state
 let currentChart = null;
 let genreChart = null;
+let dailyChart = null;
 let currentUploadedCoverUrl = null;
 let currentGenres = [];
 let currentTopics = [];
@@ -880,7 +881,7 @@ function setupTagAutocomplete(inputId, suggestionsId, chipsId, getValues, setVal
 
     const currentVals = getValues();
     const matches = suggestions.filter(s =>
-      s.toLowerCase().includes(query) && !currentVals.includes(s)
+      s.toLowerCase().includes(query) && !currentVals.some(v => v.toLowerCase() === s.toLowerCase())
     );
 
     if (matches.length === 0) {
@@ -913,7 +914,7 @@ function setupTagAutocomplete(inputId, suggestionsId, chipsId, getValues, setVal
       const val = input.value.trim();
       if (val) {
         const vals = getValues();
-        if (!vals.includes(val)) {
+        if (!vals.some(v => v.toLowerCase() === val.toLowerCase())) {
           vals.push(val);
           setValues(vals);
           renderTagChips(chipsId, getValues, setValues);
@@ -1803,20 +1804,30 @@ function openDetailModal(bookId) {
 
 async function loadDetailSessions(bookId) {
   const container = document.getElementById('detail-sessions');
+  const book = BookManager.getBook(bookId);
+  const format = book?.format || 'paper';
   try {
     const result = await API.getReadingSessions(bookId);
     if (result.success && result.sessions.length > 0) {
       container.innerHTML = `
-        <span class="detail-label">Reading Sessions</span>
+        <span class="detail-label">${t('book.readingSessions')}</span>
         <div class="session-list">
-          ${result.sessions.map(s => `
+          ${result.sessions.map(s => {
+        let metricHtml = '';
+        if (format === 'audiobook') {
+          // Show duration in hh:mm format for audiobooks
+          metricHtml = s.duration_minutes ? `<span class="session-pages">🎧 ${formatDuration(s.duration_minutes)}</span>` : '';
+        } else {
+          metricHtml = `<span class="session-pages">p. ${s.pages_read}</span>`;
+          if (s.duration_minutes) metricHtml += ` <span class="session-duration">${s.duration_minutes}min</span>`;
+        }
+        return `
             <div class="session-item">
               <span class="session-date">${formatDateRelative(s.session_date)}</span>
-              <span class="session-pages">p. ${s.pages_read}</span>
-              ${s.duration_minutes ? `<span class="session-duration">${s.duration_minutes}min</span>` : ''}
+              ${metricHtml}
               ${s.notes ? `<span class="session-notes">${escapeHtml(s.notes)}</span>` : ''}
             </div>
-          `).join('')}
+          `}).join('')}
         </div>
       `;
     } else {
@@ -1908,22 +1919,39 @@ function openSessionModal(bookId) {
   const label = document.getElementById('session-input-label');
   const input = document.getElementById('session-pages');
   const durationGroup = document.getElementById('session-duration-group');
+  const pagesGroup = document.getElementById('session-pages-group');
+  const audiobookPositionGroup = document.getElementById('session-audiobook-position-group');
+  const positionHint = document.getElementById('session-position-hint');
+
+  // Reset visibility
+  pagesGroup.classList.remove('hidden');
+  audiobookPositionGroup.classList.add('hidden');
+  input.required = false;
 
   if (format === 'paper') {
     label.textContent = t('session.pageReached');
     input.placeholder = t('session.pageCurrently', { page: book.current_page || 0 });
     input.step = '1';
+    input.required = true;
     durationGroup.style.display = '';
   } else if (format === 'audiobook') {
-    label.textContent = t('session.timeListened');
-    input.placeholder = t('session.timeCurrently', { time: formatDuration(book.current_duration_min || 0) });
-    input.step = '1';
+    // Hide the regular pages input, show hh:mm position input
+    pagesGroup.classList.add('hidden');
+    audiobookPositionGroup.classList.remove('hidden');
     durationGroup.style.display = 'none';
+    // Pre-fill current position
+    const currentMin = book.current_duration_min || 0;
+    document.getElementById('session-position-hours').value = Math.floor(currentMin / 60) || '';
+    document.getElementById('session-position-minutes').value = currentMin % 60 || '';
+    // Show hint with current and total
+    const totalDur = book.total_duration_min ? formatDuration(book.total_duration_min) : '?';
+    positionHint.textContent = t('session.timeCurrently', { time: formatDuration(currentMin) }) + (book.total_duration_min ? ` / ${totalDur}` : '');
   } else if (format === 'ebook') {
     label.textContent = t('session.percentComplete');
     input.placeholder = t('session.percentCurrently', { percent: book.current_percentage || 0 });
     input.step = '0.1';
     input.max = '100';
+    input.required = true;
     durationGroup.style.display = '';
   }
 
@@ -1936,7 +1964,8 @@ function openSessionModal(bookId) {
     // Show form mode
     document.getElementById('session-immersive').classList.add('hidden');
     document.getElementById('session-form-section').classList.remove('hidden');
-    document.getElementById('timer-start-btn').style.display = '';
+    // Hide timer button for audiobooks (time is tracked in audiobook app)
+    document.getElementById('timer-start-btn').style.display = format === 'audiobook' ? 'none' : '';
   }
 
   modal.classList.remove('hidden');
@@ -1955,7 +1984,6 @@ async function handleSessionSubmit(e) {
   e.preventDefault();
 
   const bookId = parseInt(document.getElementById('session-book-id').value);
-  const inputValue = parseFloat(document.getElementById('session-pages').value);
   const sessionDate = document.getElementById('session-date').value;
   const duration = document.getElementById('session-duration').value;
   const notes = document.getElementById('session-notes').value.trim();
@@ -1970,11 +1998,30 @@ async function handleSessionSubmit(e) {
   };
 
   if (format === 'paper') {
+    const inputValue = parseFloat(document.getElementById('session-pages').value);
+    if (!inputValue) {
+      document.getElementById('session-error').textContent = t('session.pageReached');
+      return;
+    }
     data.pages_read = inputValue;
     data.duration_minutes = duration ? parseInt(duration) : undefined;
   } else if (format === 'audiobook') {
-    data.duration_minutes = inputValue; // The input IS the duration for audiobooks
+    // Read hh:mm position inputs and convert to total minutes
+    const posHours = parseInt(document.getElementById('session-position-hours').value) || 0;
+    const posMinutes = parseInt(document.getElementById('session-position-minutes').value) || 0;
+    const newPositionMin = posHours * 60 + posMinutes;
+    if (newPositionMin <= 0) {
+      document.getElementById('session-error').textContent = t('session.currentPosition');
+      return;
+    }
+    // Send absolute position as duration_minutes — backend handles it as absolute
+    data.duration_minutes = newPositionMin;
   } else if (format === 'ebook') {
+    const inputValue = parseFloat(document.getElementById('session-pages').value);
+    if (inputValue === undefined || inputValue === null || isNaN(inputValue)) {
+      document.getElementById('session-error').textContent = t('session.percentComplete');
+      return;
+    }
     data.percentage = inputValue;
     data.duration_minutes = duration ? parseInt(duration) : undefined;
   }
@@ -2330,8 +2377,22 @@ async function fetchBookMetadata() {
         document.getElementById('book-total-pages').value = meta.pageCount;
       }
       if (meta.coverImage) {
-        currentUploadedCoverUrl = meta.coverImage;
-        showCoverPreview(meta.coverImage);
+        // Cache the remote cover image locally to avoid lag on every page load
+        try {
+          const proxyResult = await API.proxyCover(meta.coverImage);
+          if (proxyResult.success && proxyResult.url) {
+            currentUploadedCoverUrl = proxyResult.url;
+            showCoverPreview(proxyResult.url);
+          } else {
+            // Fallback to remote URL if proxy fails
+            currentUploadedCoverUrl = meta.coverImage;
+            showCoverPreview(meta.coverImage);
+          }
+        } catch {
+          // Fallback to remote URL
+          currentUploadedCoverUrl = meta.coverImage;
+          showCoverPreview(meta.coverImage);
+        }
       }
       showToast(t('toast.bookDetailsLoaded'), 'success');
     } else {
@@ -2359,18 +2420,43 @@ function getDateRange(period) {
     past.setMonth(past.getMonth() - 12);
     return { from: past.toISOString().split('T')[0], to: now.toISOString().split('T')[0] };
   }
+  if (period === '30d') {
+    const past = new Date(now);
+    past.setDate(past.getDate() - 30);
+    return { from: past.toISOString().split('T')[0], to: now.toISOString().split('T')[0] };
+  }
   return { from: null, to: null };
 }
 
 async function loadDashboard() {
   const { from, to } = getDateRange(currentPeriod);
-  await Promise.all([
-    loadSummaryStats(from, to),
-    loadReadingPace(from, to),
-    loadYearlyStats(new Date().getFullYear(), false),
-    loadGenreChart()
-  ]);
-  populateYearSelector();
+  const is30d = currentPeriod === '30d';
+
+  // Toggle chart visibility
+  document.getElementById('daily-chart-container').classList.toggle('hidden', !is30d);
+  document.getElementById('monthly-chart-container').classList.toggle('hidden', is30d);
+  document.getElementById('genre-chart-container').style.display = is30d ? 'none' : '';
+
+  if (is30d) {
+    await Promise.all([
+      loadSummaryStats(from, to),
+      loadReadingPace(from, to),
+      loadDailyActivityChart()
+    ]);
+  } else {
+    // Reset metric labels that may have been overridden by 30d view
+    document.querySelector('#stat-pace + .stat-metric-label').textContent = t('dashboard.daysPerBook');
+    document.querySelector('#stat-per-month + .stat-metric-label').textContent = t('dashboard.booksPerMonth');
+    document.querySelector('#stat-listening + .stat-metric-label').textContent = t('dashboard.listened');
+
+    await Promise.all([
+      loadSummaryStats(from, to),
+      loadReadingPace(from, to),
+      loadYearlyStats(new Date().getFullYear(), false),
+      loadGenreChart()
+    ]);
+    populateYearSelector();
+  }
 }
 
 async function loadSummaryStats(from, to) {
@@ -2568,6 +2654,109 @@ function populateYearSelector() {
   selector.innerHTML = years.map(year =>
     `<option value="${year}" ${year === currentYear ? 'selected' : ''}>${year}</option>`
   ).join('');
+}
+
+// ============ 30-Day Daily Activity Chart ============
+async function loadDailyActivityChart() {
+  try {
+    const result = await API.getDailyActivity(30);
+    if (!result.success) return;
+
+    const { days, summary } = result;
+
+    // Update summary stats in the metric pills
+    const totalMin = summary.totalReadMinutes + summary.totalListenMinutes;
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    document.getElementById('stat-pace').textContent = summary.daysActive;
+    document.querySelector('#stat-pace + .stat-metric-label').textContent = t('dashboard.daysActive');
+    document.getElementById('stat-per-month').textContent = summary.booksFinished;
+    document.querySelector('#stat-per-month + .stat-metric-label').textContent = t('dashboard.finished');
+    document.getElementById('stat-pages').textContent = summary.totalPages;
+    document.getElementById('stat-listening').textContent = m > 0 ? `${h}h ${m}m` : h > 0 ? `${h}h` : '—';
+    document.querySelector('#stat-listening + .stat-metric-label').textContent = t('dashboard.totalTime');
+
+    // Render chart
+    renderDailyChart(days);
+  } catch (error) {
+    console.error('Failed to load daily activity:', error);
+  }
+}
+
+function renderDailyChart(days) {
+  const ctx = document.getElementById('daily-activity-chart');
+
+  if (dailyChart) {
+    dailyChart.destroy();
+  }
+
+  // Format labels as short dates (e.g. "Feb 20")
+  const labels = days.map(d => {
+    const date = new Date(d.date + 'T12:00:00');
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  });
+
+  dailyChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: t('dashboard.readingTime'),
+          data: days.map(d => d.readMinutes),
+          backgroundColor: '#6366f1',
+          borderRadius: 2
+        },
+        {
+          label: t('dashboard.listeningTime'),
+          data: days.map(d => d.listenMinutes),
+          backgroundColor: '#a855f7',
+          borderRadius: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 2,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: {
+            usePointStyle: true,
+            padding: 12,
+            font: { size: 11 }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${ctx.dataset.label}: ${ctx.raw} ${t('dashboard.minutes')}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: {
+            maxRotation: 45,
+            font: { size: 9 },
+            autoSkip: true,
+            maxTicksLimit: 15
+          }
+        },
+        y: {
+          stacked: true,
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: t('dashboard.minutes'),
+            font: { size: 11 }
+          }
+        }
+      }
+    }
+  });
 }
 
 // ============ Utility Functions ============

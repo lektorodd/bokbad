@@ -190,7 +190,8 @@ function handleCreateSession($db, $userId) {
         sendSuccess($response, 201);
     } catch (PDOException $e) {
         $db->rollBack();
-        sendError('Database error: ' . $e->getMessage(), 500);
+        error_log('Reading session error: ' . $e->getMessage());
+        sendError('Failed to save reading session', 500);
     }
 }
 
