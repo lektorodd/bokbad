@@ -86,6 +86,7 @@
         "fetch": "Fetch",
         "fetching": "Fetching...",
         "scanBarcode": "Scan ISBN Barcode",
+        "scanHint": "Point your camera at the barcode on the back of the book",
         "title": "Book Title *",
         "authors": "Authors",
         "authorsPlaceholder": "Type to add author...",

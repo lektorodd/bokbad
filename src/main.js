@@ -1045,6 +1045,18 @@ function renderActiveFilterPills() {
     });
   }
 
+  // Author pill
+  if (BookManager.currentAuthorFilter) {
+    pills.push({
+      label: `✍ ${BookManager.currentAuthorFilter}`,
+      clear: () => {
+        BookManager.setAuthorFilter('');
+        renderBooks();
+        renderActiveFilterPills();
+      }
+    });
+  }
+
   // Render
   container.innerHTML = pills.map((pill, i) =>
     `<span class="filter-pill" data-pill-idx="${i}">${escapeHtml(pill.label)}<button class="filter-pill-remove" data-pill-idx="${i}">×</button></span>`
@@ -1510,7 +1522,7 @@ function renderBooks() {
   const books = BookManager.getFilteredBooks();
 
   if (books.length === 0) {
-    const hasFilters = BookManager.currentSearch || BookManager.currentFilter.length > 0 || BookManager.currentGenreFilter || BookManager.currentTopicFilter || BookManager.currentAudiobookFilter !== 'all';
+    const hasFilters = BookManager.currentSearch || BookManager.currentFilter.length > 0 || BookManager.currentGenreFilter || BookManager.currentTopicFilter || BookManager.currentAuthorFilter || BookManager.currentAudiobookFilter !== 'all';
     container.innerHTML = `
       <div class="empty-state">
         <div class="empty-state-icon">${hasFilters ? '🔍' : '📚'}</div>
@@ -1599,6 +1611,12 @@ function createBookCard(book) {
     }
   }
 
+  // Series info
+  let seriesHtml = '';
+  if (book.series_name) {
+    seriesHtml = `<span class="book-series-chip">${escapeHtml(book.series_name)}${book.series_order ? ` #${book.series_order}` : ''}</span>`;
+  }
+
   return `
     <div class="book-card" data-book-id="${book.id}" data-status="${book.status}">
       <div class="swipe-action-right"><span>${t('library.swipeLog')}</span></div>
@@ -1608,6 +1626,7 @@ function createBookCard(book) {
         <div class="book-info">
           <div class="book-title">${escapeHtml(book.name)}</div>
           ${authorsHtml}
+          ${seriesHtml}
           ${compactBadgeHtml}
           ${progressHtml}
           ${tagsHtml}
@@ -1653,15 +1672,15 @@ function openDetailModal(bookId) {
     : `<div class="detail-cover-placeholder">📖</div>`;
 
   const authorsText = book.authors && book.authors.length > 0
-    ? escapeHtml(book.authors.join(', '))
+    ? book.authors.map(a => `<span class="detail-author-link" data-author="${escapeHtml(a)}">${escapeHtml(a)}</span>`).join(', ')
     : '';
 
   const formatLabel = { 'paper': '📕 Paper', 'ebook': '📱 E-book', 'audiobook': '🎧 Audio' }[book.format || 'paper'];
 
   // Tags (genres + topics combined inline)
   const allTags = [];
-  if (book.genres) allTags.push(...book.genres.map(g => `<span class="tag tag-genre">${escapeHtml(getGenreLabel(g))}</span>`));
-  if (book.topics) allTags.push(...book.topics.map(t => `<span class="tag tag-topic">${escapeHtml(t)}</span>`));
+  if (book.genres) allTags.push(...book.genres.map(g => `<span class="tag tag-genre detail-tag-link" data-genre="${escapeHtml(g)}">${escapeHtml(getGenreLabel(g))}</span>`));
+  if (book.topics) allTags.push(...book.topics.map(t => `<span class="tag tag-topic detail-tag-link" data-topic="${escapeHtml(t)}">${escapeHtml(t)}</span>`));
   const tagsHtml = allTags.length > 0
     ? `<div class="detail-tags-row">${allTags.join('')}</div>`
     : '';
@@ -1669,7 +1688,7 @@ function openDetailModal(bookId) {
   // Series
   let seriesHtml = '';
   if (book.series_name) {
-    seriesHtml = `<span class="detail-meta-chip">${escapeHtml(book.series_name)}${book.series_order ? ` #${book.series_order}` : ''}</span>`;
+    seriesHtml = `<span class="detail-meta-chip detail-series-link" data-series="${escapeHtml(book.series_name)}">${escapeHtml(book.series_name)}${book.series_order ? ` #${book.series_order}` : ''}</span>`;
   }
 
   // Progress
@@ -1724,7 +1743,7 @@ function openDetailModal(bookId) {
   `;
 
   // Status badge
-  const statusHtml = `<span class="book-status ${book.status} detail-status-badge" data-book-id="${bookId}" title="Tap to change">${statusLabel}</span>`;
+  const statusHtml = `<span class="book-status ${book.status} detail-status-badge detail-status-link" data-status="${book.status}" data-book-id="${bookId}" title="${t('library.statusSort')}">${statusLabel}</span>`;
 
   const body = document.getElementById('detail-body');
   body.innerHTML = `
@@ -1751,11 +1770,35 @@ function openDetailModal(bookId) {
     </div>
   `;
 
-  // Quick status badge click
-  const badge = body.querySelector('.detail-status-badge');
+  // Clickable status badge → navigate to library filtered by this status
+  const badge = body.querySelector('.detail-status-link');
   if (badge) {
-    badge.addEventListener('click', async () => {
-      await handleQuickStatusChange(bookId);
+    badge.addEventListener('click', () => {
+      navigateToLibraryWithFilter({ status: badge.dataset.status });
+    });
+  }
+
+  // Clickable author links
+  body.querySelectorAll('.detail-author-link').forEach(el => {
+    el.addEventListener('click', () => {
+      navigateToLibraryWithFilter({ author: el.dataset.author });
+    });
+  });
+
+  // Clickable genre/topic tags
+  body.querySelectorAll('.detail-tag-link').forEach(el => {
+    if (el.dataset.genre) {
+      el.addEventListener('click', () => navigateToLibraryWithFilter({ genre: el.dataset.genre }));
+    } else if (el.dataset.topic) {
+      el.addEventListener('click', () => navigateToLibraryWithFilter({ topic: el.dataset.topic }));
+    }
+  });
+
+  // Clickable series chip
+  const seriesLink = body.querySelector('.detail-series-link');
+  if (seriesLink) {
+    seriesLink.addEventListener('click', () => {
+      navigateToLibraryWithFilter({ search: seriesLink.dataset.series });
     });
   }
 
@@ -1867,6 +1910,54 @@ function closeDetailModal() {
     modal.classList.add('hidden');
     modal.classList.remove('modal-closing');
   }, { once: true });
+}
+
+// Navigate to library with a specific filter applied
+function navigateToLibraryWithFilter({ author, status, genre, topic, search } = {}) {
+  // Reset all filters first
+  BookManager.setSearch('');
+  BookManager.setFilter([]);
+  BookManager.setGenreFilter('');
+  BookManager.setTopicFilter('');
+  BookManager.setAuthorFilter('');
+  BookManager.setAudiobookFilter('all');
+  BookManager.setSort('newest');
+
+  // Reset UI controls
+  document.getElementById('search-input').value = '';
+  document.getElementById('genre-filter').value = '';
+  document.getElementById('topic-filter').value = '';
+  document.getElementById('audiobook-filter').value = 'all';
+  document.getElementById('sort-select').value = 'newest';
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.filter-tab[data-status="all"]')?.classList.add('active');
+
+  // Apply the requested filter
+  if (author) {
+    BookManager.setAuthorFilter(author);
+  }
+  if (status) {
+    BookManager.setFilter([status]);
+    document.querySelector('.filter-tab[data-status="all"]')?.classList.remove('active');
+    document.querySelector(`.filter-tab[data-status="${status}"]`)?.classList.add('active');
+  }
+  if (genre) {
+    BookManager.setGenreFilter(genre);
+    document.getElementById('genre-filter').value = genre;
+  }
+  if (topic) {
+    BookManager.setTopicFilter(topic);
+    document.getElementById('topic-filter').value = topic;
+  }
+  if (search) {
+    BookManager.setSearch(search);
+    document.getElementById('search-input').value = search;
+  }
+
+  // Close detail modal and navigate to library
+  closeDetailModal();
+  switchView('library');
+  renderActiveFilterPills();
 }
 
 // ============ Reading Session Modal ============

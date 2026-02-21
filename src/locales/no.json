@@ -86,6 +86,7 @@
         "fetch": "Hent",
         "fetching": "Henter...",
         "scanBarcode": "Skann ISBN-strekkode",
+        "scanHint": "Pek kameraet mot strekkoden på baksiden av boka",
         "title": "Boktittel *",
         "authors": "Forfattere",
         "authorsPlaceholder": "Skriv for å legge til forfatter...",

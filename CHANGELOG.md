@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0] - 2026-02-21
+
+### Added
+- **Clickable Detail Elements** — tap author, status, series, or genre/topic tags in book detail to navigate to a filtered library view.
+- **Author Filter** — dedicated author filter in BookManager with removable ✍ filter pill.
+- **Series on Book Cards** — series name and order number now display on library book cards.
+- **Scanner Instructions** — ISBN scanner overlay shows instruction text and animated scanning guide.
+
+### Fixed
+- **30-Day Stat Bug** — audiobook sessions now store the actual listening delta instead of the absolute position, fixing inflated stats in the dashboard chart.
+- **Deploy Script** — replaced `mput` with individual `put` commands to prevent files being uploaded to wrong destinations.
+- **Dark Mode** — filter tabs, genre tags, and topic tags now render correctly in dark mode.
+
 ## [1.9.0] - 2026-02-21
 
 ### Added

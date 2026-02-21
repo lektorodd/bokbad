@@ -123,16 +123,26 @@ function handleCreateSession($db, $userId) {
                 break;
 
             case 'audiobook':
-                // duration_minutes is the total listened so far (absolute) or increment
+                // duration_minutes is the absolute position in the audiobook
                 $currentDuration = (int)$book['current_duration_min'];
                 $totalDuration = $book['total_duration_min'] ? (int)$book['total_duration_min'] : null;
 
                 if ($duration) {
-                    // Use duration as absolute position if larger, else add
+                    // Treat as absolute position if larger than current, else add as increment
                     $newDuration = $duration > $currentDuration ? $duration : $currentDuration + $duration;
                     if ($totalDuration && $newDuration > $totalDuration) {
                         $newDuration = $totalDuration;
                     }
+
+                    // Calculate the actual listening delta for this session
+                    $sessionDelta = $newDuration - $currentDuration;
+                    if ($sessionDelta < 0) $sessionDelta = 0;
+
+                    // Update the session record with the delta (not absolute position)
+                    // so that stats correctly sum session increments
+                    $stmt = $db->prepare("UPDATE bokbad_reading_sessions SET duration_minutes = ? WHERE id = ?");
+                    $stmt->execute([$sessionDelta, $sessionId]);
+
                     $stmt = $db->prepare("UPDATE bokbad_books SET current_duration_min = ? WHERE id = ? AND user_id = ?");
                     $stmt->execute([$newDuration, $bookId, $userId]);
                     $response['current_duration_min'] = $newDuration;

@@ -7,6 +7,7 @@ class BookManager {
     static currentAudiobookFilter = 'all'; // 'all', 'audiobook', 'physical'
     static currentGenreFilter = '';
     static currentTopicFilter = '';
+    static currentAuthorFilter = '';
     static currentSort = 'newest';
     static availableGenres = [];
     static availableTopics = [];
@@ -145,6 +146,14 @@ class BookManager {
             );
         }
 
+        // Apply author filter
+        if (this.currentAuthorFilter) {
+            const af = this.currentAuthorFilter.toLowerCase();
+            filtered = filtered.filter(book =>
+                book.authors && book.authors.some(a => a.toLowerCase() === af)
+            );
+        }
+
         // Apply search filter
         if (this.currentSearch) {
             const search = this.currentSearch.toLowerCase();
@@ -228,6 +237,10 @@ class BookManager {
 
     static setTopicFilter(topic) {
         this.currentTopicFilter = topic;
+    }
+
+    static setAuthorFilter(author) {
+        this.currentAuthorFilter = author;
     }
 
     static setSort(sort) {
