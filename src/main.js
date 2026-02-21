@@ -2767,6 +2767,11 @@ async function loadDailyActivityChart() {
     document.getElementById('stat-listening').textContent = m > 0 ? `${h}h ${m}m` : h > 0 ? `${h}h` : '—';
     document.querySelector('#stat-listening + .stat-metric-label').textContent = t('dashboard.totalTime');
 
+    // Audiobook listening stat
+    const lh = Math.floor(summary.totalListenMinutes / 60);
+    const lm = summary.totalListenMinutes % 60;
+    document.getElementById('stat-audiobook-time').textContent = lm > 0 ? `${lh}h ${lm}m` : lh > 0 ? `${lh}h` : '—';
+
     // Render chart
     renderDailyChart(days);
   } catch (error) {

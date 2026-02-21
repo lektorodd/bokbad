@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.1] - 2026-02-21
+
+### Added
+- **Audiobook Listening Stat** — separate 🎧 stat on dashboard showing audiobook-only listening time alongside ⏱ total time.
+- **Audiobook Session Migration** — one-time script to fix existing session records (`api/migrations/fix_audiobook_sessions.php`).
+
+### Fixed
+- Dashboard time stat icon changed from misleading 🎧 to ⏱ since it shows combined total time.
+
 ## [1.10.0] - 2026-02-21
 
 ### Added
