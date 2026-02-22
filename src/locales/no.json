@@ -126,7 +126,10 @@
         "loadingSessions": "Laster økter...",
         "coverFound": "Omslag funnet i biblioteket",
         "useCover": "Bruk omslag",
-        "dismiss": "Avvis"
+        "dismiss": "Avvis",
+        "exactDate": "Eksakt dato",
+        "monthYear": "Måned og år",
+        "yearOnly": "Bare år"
     },
     "session": {
         "logReading": "Logg lesing",

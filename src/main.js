@@ -128,12 +128,19 @@ function toggleDarkMode() {
 }
 
 // ============ Date Formatting ============
-function formatDate(dateStr) {
+function formatDate(dateStr, precision = 'day') {
   if (!dateStr) return '';
   try {
     const date = new Date(dateStr + 'T12:00:00');
     if (isNaN(date.getTime())) return dateStr;
-    return new Intl.DateTimeFormat(getLocale() === 'no' ? 'nb' : getLocale(), { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
+    const locale = getLocale() === 'no' ? 'nb' : getLocale();
+    if (precision === 'year') {
+      return date.getFullYear().toString();
+    }
+    if (precision === 'month') {
+      return new Intl.DateTimeFormat(locale, { month: 'short', year: 'numeric' }).format(date);
+    }
+    return new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
   } catch {
     return dateStr;
   }
@@ -172,7 +179,6 @@ async function init() {
       if (activeView?.id === 'home-view') renderHome();
       else if (activeView?.id === 'library-view') { updateFilterTabCounts(); renderBooks(); }
       else if (activeView?.id === 'dashboard-view') loadDashboard();
-      else if (activeView?.id === 'admin-view') loadAdminPanel();
     });
   }
 
@@ -216,10 +222,10 @@ function showLogin() {
 function showApp() {
   document.getElementById('login-view').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
-  // Show/hide admin nav based on role
-  const adminNav = document.getElementById('admin-nav-btn');
-  if (adminNav) {
-    adminNav.classList.toggle('hidden', !Auth.isAdmin());
+  // Show/hide admin panel link based on role
+  const adminLink = document.getElementById('admin-panel-link');
+  if (adminLink) {
+    adminLink.classList.toggle('hidden', !Auth.isAdmin());
   }
 }
 
@@ -244,8 +250,6 @@ function switchView(viewName) {
       renderBooks();
     } else if (viewName === 'dashboard') {
       loadDashboard();
-    } else if (viewName === 'admin') {
-      loadAdminPanel();
     }
   }
 }
@@ -293,6 +297,47 @@ function updateFormatFields(format) {
     totalPagesGroup.classList.remove('hidden');
     currentPercentageGroup.classList.remove('hidden');
   }
+}
+
+// Swap finish date input based on precision selection
+function updateFinishDateInput(precision) {
+  const wrapper = document.getElementById('finish-date-input-wrapper');
+  const currentInput = document.getElementById('book-finish-date');
+  const currentValue = currentInput ? currentInput.value : '';
+
+  let newInput;
+  if (precision === 'year') {
+    newInput = document.createElement('input');
+    newInput.type = 'number';
+    newInput.min = '1900';
+    newInput.max = '2100';
+    newInput.placeholder = new Date().getFullYear().toString();
+    newInput.id = 'book-finish-date';
+    // Try to extract year from existing value
+    if (currentValue) {
+      newInput.value = currentValue.substring(0, 4);
+    }
+  } else if (precision === 'month') {
+    newInput = document.createElement('input');
+    newInput.type = 'month';
+    newInput.id = 'book-finish-date';
+    // Try to extract YYYY-MM from existing value
+    if (currentValue && currentValue.length >= 7) {
+      newInput.value = currentValue.substring(0, 7);
+    } else if (currentValue && currentValue.length === 4) {
+      newInput.value = currentValue + '-01';
+    }
+  } else {
+    newInput = document.createElement('input');
+    newInput.type = 'date';
+    newInput.id = 'book-finish-date';
+    if (currentValue && currentValue.length === 10) {
+      newInput.value = currentValue;
+    }
+  }
+
+  wrapper.innerHTML = '';
+  wrapper.appendChild(newInput);
 }
 
 function formatDuration(totalMinutes) {
@@ -808,6 +853,11 @@ function setupEventListeners() {
   // Format select — show/hide fields based on format
   document.getElementById('book-format').addEventListener('change', (e) => {
     updateFormatFields(e.target.value);
+  });
+
+  // Finish date precision — swap input type
+  document.getElementById('book-finish-date-precision').addEventListener('change', (e) => {
+    updateFinishDateInput(e.target.value);
   });
 
   // Year selector
@@ -1721,7 +1771,7 @@ function openDetailModal(bookId) {
   // Dates inline
   const dateItems = [];
   if (book.start_date) dateItems.push(`📅 ${formatDate(book.start_date)}`);
-  if (book.finish_date) dateItems.push(`✅ ${formatDate(book.finish_date)}`);
+  if (book.finish_date) dateItems.push(`✅ ${formatDate(book.finish_date, book.finish_date_precision || 'day')}`);
   const datesHtml = dateItems.length > 0
     ? `<div class="detail-dates">${dateItems.join(' <span class="detail-date-sep">→</span> ')}</div>`
     : '';
@@ -2176,6 +2226,8 @@ function openBookModal(bookId = null) {
   renderTagChips('topic-chips', () => currentTopics, (v) => { currentTopics = v; });
   renderTagChips('author-chips', () => currentAuthors, (v) => { currentAuthors = v; });
   updateFormatFields('paper');
+  document.getElementById('book-finish-date-precision').value = 'day';
+  updateFinishDateInput('day');
   populateSeriesDropdown();
   document.getElementById('book-series-order').value = '';
 
@@ -2192,7 +2244,22 @@ function openBookModal(bookId = null) {
     document.getElementById('book-authors').value = '';
     document.getElementById('book-status').value = book.status;
     document.getElementById('book-start-date').value = book.start_date || '';
-    document.getElementById('book-finish-date').value = book.finish_date || '';
+    const editPrecision = book.finish_date_precision || 'day';
+    document.getElementById('book-finish-date-precision').value = editPrecision;
+    updateFinishDateInput(editPrecision);
+    // Populate the finish date value based on precision
+    if (book.finish_date) {
+      const fd = book.finish_date; // YYYY-MM-DD
+      if (editPrecision === 'year') {
+        document.getElementById('book-finish-date').value = fd.substring(0, 4);
+      } else if (editPrecision === 'month') {
+        document.getElementById('book-finish-date').value = fd.substring(0, 7);
+      } else {
+        document.getElementById('book-finish-date').value = fd;
+      }
+    } else {
+      document.getElementById('book-finish-date').value = '';
+    }
     document.getElementById('book-thoughts').value = book.thoughts || '';
     document.getElementById('book-isbn').value = book.isbn || '';
     document.getElementById('book-format').value = book.format || 'paper';
@@ -2259,7 +2326,10 @@ async function handleBookSubmit(e) {
   const authors = [...new Set([...currentAuthors, ...typedAuthors])];
   const status = document.getElementById('book-status').value;
   const startDate = document.getElementById('book-start-date').value || null;
-  const finishDate = document.getElementById('book-finish-date').value || null;
+  const finishDatePrecision = document.getElementById('book-finish-date-precision').value || 'day';
+  const rawFinishDate = document.getElementById('book-finish-date').value || null;
+  // Send the raw value - API handles normalization based on precision
+  const finishDate = rawFinishDate;
   const thoughts = document.getElementById('book-thoughts').value.trim() || null;
   const isbn = document.getElementById('book-isbn').value.trim() || null;
   const format = document.getElementById('book-format').value;
@@ -2285,6 +2355,7 @@ async function handleBookSubmit(e) {
     status,
     startDate,
     finishDate,
+    finishDatePrecision,
     thoughts,
     isbn,
     format,
@@ -3285,228 +3356,7 @@ async function importData(e) {
 // Initialize on load
 init();
 
-// ============ Admin Panel ============
-async function loadAdminPanel() {
-  if (!Auth.isAdmin()) return;
-  try {
-    const result = await API.getGlobalStats();
-    if (!result.success) return;
-    const s = result.stats;
-    document.getElementById('admin-stat-users').textContent = s.totalUsers;
-    document.getElementById('admin-stat-books').textContent = s.totalBooks;
-    document.getElementById('admin-stat-read').textContent = s.totalBooksRead;
-    document.getElementById('admin-stat-pages').textContent = s.totalPages.toLocaleString();
-    document.getElementById('admin-stat-sessions').textContent = s.totalSessions;
-    const listeningHrs = Math.round(s.totalListeningMinutes / 60);
-    document.getElementById('admin-stat-listening').textContent = listeningHrs > 0 ? `${listeningHrs}h` : '0';
 
-    // Per-user breakdown
-    const perUserEl = document.getElementById('admin-per-user');
-    if (result.perUser && result.perUser.length) {
-      perUserEl.innerHTML = result.perUser.map(u => `
-        <div class="admin-user-stat-card">
-          <div class="admin-user-stat-name">${escapeHtml(u.display_name || u.username)}</div>
-          <div class="admin-user-stat-row">
-            <span>📚 ${u.book_count} ${t('admin.books')}</span>
-            <span>✅ ${u.books_read} ${t('admin.readLabel')}</span>
-            <span>📄 ${parseInt(u.pages_read).toLocaleString()} ${t('admin.pages')}</span>
-            <span>📖 ${u.currently_reading} ${t('admin.readingLabel')}</span>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // Load users list
-    await loadAdminUsers();
-  } catch (err) {
-    console.error('Admin panel error:', err);
-  }
-}
-
-async function loadAdminUsers() {
-  const result = await API.getUsers();
-  if (!result.success) return;
-  const container = document.getElementById('admin-users-list');
-  const currentUserId = Auth.getUser()?.id;
-
-  container.innerHTML = result.users.map(u => `
-    <div class="admin-user-row">
-      <div class="admin-user-info">
-        <strong>${escapeHtml(u.username)}</strong>
-        ${u.display_name ? `<span class="admin-user-display">${escapeHtml(u.display_name)}</span>` : ''}
-        <span class="admin-user-badge admin-user-badge-${u.role}">${u.role}</span>
-        <span class="admin-user-meta">${u.book_count} books · ${u.books_read} read</span>
-      </div>
-      <div class="admin-user-actions">
-        <button class="btn btn-secondary btn-xs" onclick="window._adminEditUser(${u.id})">${t('admin.edit')}</button>
-        <button class="btn btn-secondary btn-xs" onclick="window._adminResetPw(${u.id}, '${escapeHtml(u.username)}')">${t('admin.resetPW')}</button>
-        ${u.id !== currentUserId ? `<button class="btn btn-danger btn-xs" onclick="window._adminDeleteUser(${u.id}, '${escapeHtml(u.username)}')">${t('admin.deleteUser')}</button>` : ''}
-      </div>
-    </div>
-  `).join('');
-}
-
-// Expose admin handlers to onclick attributes
-window._adminEditUser = function (userId) { openUserModal(userId); };
-window._adminResetPw = function (userId, username) { openResetPwModal(userId, username); };
-window._adminDeleteUser = async function (userId, username) {
-  if (!confirm(t('toast.deleteUserConfirm', { username }))) return;
-  try {
-    const result = await API.deleteUser(userId);
-    if (result.success) {
-      showToast(t('toast.userDeleted', { username }), 'success');
-      loadAdminPanel();
-    } else {
-      showToast(result.error || t('toast.deleteFailed'), 'error');
-    }
-  } catch (err) {
-    showToast(t('toast.deleteFailed'), 'error');
-  }
-};
-
-// Add/Edit User Modal
-let adminUsersCache = [];
-
-async function openUserModal(userId = null) {
-  const modal = document.getElementById('user-modal');
-  const title = document.getElementById('user-modal-title');
-  const form = document.getElementById('user-form');
-  const pwGroup = document.getElementById('user-password-group');
-  const errorEl = document.getElementById('user-form-error');
-
-  form.reset();
-  errorEl.textContent = '';
-  document.getElementById('user-edit-id').value = '';
-
-  if (userId) {
-    title.textContent = t('admin.editUserTitle');
-    pwGroup.classList.add('hidden');
-    // Load user data
-    if (!adminUsersCache.length) {
-      const res = await API.getUsers();
-      if (res.success) adminUsersCache = res.users;
-    }
-    const user = adminUsersCache.find(u => u.id == userId);
-    if (user) {
-      document.getElementById('user-edit-id').value = user.id;
-      document.getElementById('user-username').value = user.username;
-      document.getElementById('user-display-name').value = user.display_name || '';
-      document.getElementById('user-role').value = user.role;
-    }
-  } else {
-    title.textContent = t('admin.addUserTitle');
-    pwGroup.classList.remove('hidden');
-    document.getElementById('user-password').required = true;
-  }
-
-  modal.classList.remove('hidden');
-}
-
-function closeUserModal() {
-  const modal = document.getElementById('user-modal');
-  modal.classList.add('modal-closing');
-  modal.addEventListener('animationend', () => {
-    modal.classList.add('hidden');
-    modal.classList.remove('modal-closing');
-  }, { once: true });
-}
-
-async function handleUserSubmit(e) {
-  e.preventDefault();
-  const errorEl = document.getElementById('user-form-error');
-  errorEl.textContent = '';
-
-  const editId = document.getElementById('user-edit-id').value;
-  const username = document.getElementById('user-username').value.trim();
-  const displayName = document.getElementById('user-display-name').value.trim();
-  const role = document.getElementById('user-role').value;
-
-  try {
-    let result;
-    if (editId) {
-      result = await API.updateUser({
-        id: parseInt(editId),
-        username,
-        display_name: displayName || null,
-        role
-      });
-    } else {
-      const password = document.getElementById('user-password').value;
-      if (!password || password.length < 4) {
-        errorEl.textContent = t('toast.passwordMinLength');
-        return;
-      }
-      result = await API.createUser({
-        username,
-        password,
-        display_name: displayName || null,
-        role
-      });
-    }
-
-    if (result.success || result.updated || result.user) {
-      showToast(editId ? t('toast.userUpdated') : t('toast.userCreated'), 'success');
-      adminUsersCache = [];
-      closeUserModal();
-      loadAdminPanel();
-    } else {
-      errorEl.textContent = result.error || t('toast.operationFailed');
-    }
-  } catch (err) {
-    errorEl.textContent = t('toast.networkError');
-  }
-}
-
-// Reset Password Modal
-function openResetPwModal(userId, username) {
-  const modal = document.getElementById('reset-pw-modal');
-  document.getElementById('reset-pw-user-id').value = userId;
-  document.getElementById('reset-pw-username-label').textContent = t('admin.resettingFor', { username });
-  document.getElementById('reset-pw-new').value = '';
-  document.getElementById('reset-pw-confirm').value = '';
-  document.getElementById('reset-pw-error').textContent = '';
-  modal.classList.remove('hidden');
-}
-
-function closeResetPwModal() {
-  const modal = document.getElementById('reset-pw-modal');
-  modal.classList.add('modal-closing');
-  modal.addEventListener('animationend', () => {
-    modal.classList.add('hidden');
-    modal.classList.remove('modal-closing');
-  }, { once: true });
-}
-
-async function handleResetPassword(e) {
-  e.preventDefault();
-  const errorEl = document.getElementById('reset-pw-error');
-  errorEl.textContent = '';
-
-  const userId = parseInt(document.getElementById('reset-pw-user-id').value);
-  const newPw = document.getElementById('reset-pw-new').value;
-  const confirmPw = document.getElementById('reset-pw-confirm').value;
-
-  if (newPw.length < 4) {
-    errorEl.textContent = t('toast.passwordMinLength');
-    return;
-  }
-  if (newPw !== confirmPw) {
-    errorEl.textContent = t('toast.passwordsNoMatch');
-    return;
-  }
-
-  try {
-    const result = await API.resetUserPassword(userId, newPw);
-    if (result.success || result.reset) {
-      showToast(t('toast.passwordReset'), 'success');
-      closeResetPwModal();
-    } else {
-      errorEl.textContent = result.error || t('toast.passwordResetFailed');
-    }
-  } catch (err) {
-    errorEl.textContent = t('toast.networkError');
-  }
-}
 
 // ============ Change Own Password ============
 async function handleChangePassword() {

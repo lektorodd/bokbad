@@ -122,6 +122,10 @@ function handleCreateBook($db, $userId) {
     $thoughts = $data['thoughts'] ?? null;
     $startDate = $data['startDate'] ?? null;
     $finishDate = $data['finishDate'] ?? null;
+    $finishDatePrecision = $data['finishDatePrecision'] ?? 'day';
+    if (!in_array($finishDatePrecision, ['day', 'month', 'year'])) {
+        $finishDatePrecision = 'day';
+    }
     $isbn = $data['isbn'] ?? null;
     $isAudiobook = !empty($data['isAudiobook']) ? 1 : 0;
     $format = $data['format'] ?? ($isAudiobook ? 'audiobook' : 'paper');
@@ -167,14 +171,22 @@ function handleCreateBook($db, $userId) {
     // Auto-set finish date if status is 'read' and no date provided
     if ($status === 'read' && !$finishDate) {
         $finishDate = date('Y-m-d');
+        $finishDatePrecision = 'day';
+    }
+    
+    // Normalize finish_date based on precision
+    if ($finishDate && $finishDatePrecision === 'year') {
+        $finishDate = $finishDate . '-07-01';
+    } elseif ($finishDate && $finishDatePrecision === 'month') {
+        $finishDate = $finishDate . '-15';
     }
     
     $seriesId = isset($data['seriesId']) ? (int)$data['seriesId'] : null;
     $seriesOrder = isset($data['seriesOrder']) ? (int)$data['seriesOrder'] : null;
     
     $stmt = $db->prepare("
-        INSERT INTO bokbad_books (user_id, name, authors, cover_image, genres, topics, status, thoughts, start_date, finish_date, isbn, is_audiobook, format, total_pages, current_page, total_duration_min, current_duration_min, current_percentage, series_id, series_order)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO bokbad_books (user_id, name, authors, cover_image, genres, topics, status, thoughts, start_date, finish_date, finish_date_precision, isbn, is_audiobook, format, total_pages, current_page, total_duration_min, current_duration_min, current_percentage, series_id, series_order)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
     
     $stmt->execute([
@@ -188,6 +200,7 @@ function handleCreateBook($db, $userId) {
         $thoughts,
         $startDate,
         $finishDate,
+        $finishDatePrecision,
         $isbn,
         $isAudiobook,
         $format,
@@ -262,6 +275,8 @@ function handleUpdateBook($db, $userId) {
         if ($data['status'] === 'read' && !isset($data['finishDate'])) {
             $updates[] = "finish_date = ?";
             $params[] = date('Y-m-d');
+            $updates[] = "finish_date_precision = ?";
+            $params[] = 'day';
         }
         
         // NOTE: We intentionally do NOT auto-clear finish_date when moving away from 'read'.
@@ -299,8 +314,25 @@ function handleUpdateBook($db, $userId) {
         $params[] = $data['startDate'] ?: null;
     }
     if (array_key_exists('finishDate', $data)) {
+        $finishDateVal = $data['finishDate'] ?: null;
+        $fdp = $data['finishDatePrecision'] ?? 'day';
+        if (!in_array($fdp, ['day', 'month', 'year'])) $fdp = 'day';
+        // Normalize date based on precision
+        if ($finishDateVal && $fdp === 'year') {
+            $finishDateVal = $finishDateVal . '-07-01';
+        } elseif ($finishDateVal && $fdp === 'month') {
+            $finishDateVal = $finishDateVal . '-15';
+        }
         $updates[] = "finish_date = ?";
-        $params[] = $data['finishDate'] ?: null;
+        $params[] = $finishDateVal;
+        $updates[] = "finish_date_precision = ?";
+        $params[] = $fdp;
+    } elseif (isset($data['finishDatePrecision'])) {
+        $fdp = $data['finishDatePrecision'];
+        if (in_array($fdp, ['day', 'month', 'year'])) {
+            $updates[] = "finish_date_precision = ?";
+            $params[] = $fdp;
+        }
     }
     if (isset($data['isbn'])) {
         $updates[] = "isbn = ?";
@@ -382,6 +414,8 @@ function handleUpdateBook($db, $userId) {
                 if (!isset($data['finishDate']) && !$currentBook['finish_date']) {
                     $updates[] = "finish_date = ?";
                     $params[] = date('Y-m-d');
+                    $updates[] = "finish_date_precision = ?";
+                    $params[] = 'day';
                 }
             }
         }

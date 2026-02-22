@@ -126,7 +126,10 @@
         "loadingSessions": "Loading sessions...",
         "coverFound": "Cover found in library",
         "useCover": "Use cover",
-        "dismiss": "Dismiss"
+        "dismiss": "Dismiss",
+        "exactDate": "Exact date",
+        "monthYear": "Month & year",
+        "yearOnly": "Year only"
     },
     "session": {
         "logReading": "Log Reading",

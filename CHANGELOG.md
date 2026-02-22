@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0] - 2026-02-22
+
+### Added
+- **Finish Date Precision** — when logging a book, you can now choose between "Exact date", "Month & year", or "Year only" for the finish date. Perfect for adding books you read in the past where you only remember the year. The detail modal displays dates accordingly (e.g., "2023" or "Mar 2023").
+- Database migration v7 (`finish_date_precision` column).
+
 ## [1.10.4] - 2026-02-22
 
 ### Fixed

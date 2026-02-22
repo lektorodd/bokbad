@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS bokbad_books (
     thoughts TEXT COMMENT 'Personal notes and key takeaways',
     start_date DATE,
     finish_date DATE,
+    finish_date_precision ENUM('day','month','year') NOT NULL DEFAULT 'day',
     isbn VARCHAR(20) COMMENT 'For metadata lookup',
     is_audiobook TINYINT(1) NOT NULL DEFAULT 0,
     format ENUM('paper','ebook','audiobook') NOT NULL DEFAULT 'paper',

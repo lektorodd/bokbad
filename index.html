@@ -80,6 +80,10 @@
           <button id="settings-btn" class="dropdown-item">
             <span class="dropdown-icon">⚙️</span> <span data-i18n="menu.settings">Settings</span>
           </button>
+          <a id="admin-panel-link" class="dropdown-item hidden" href="https://admin.lektorodd.no" target="_blank"
+            rel="noopener">
+            <span class="dropdown-icon">🛡️</span> <span data-i18n="menu.adminPanel">Admin Panel</span>
+          </a>
           <a id="report-issue-menu-btn" class="dropdown-item" href="https://github.com/lektorodd/bokbad/issues"
             target="_blank" rel="noopener">
             <span class="dropdown-icon">🐛</span> <span data-i18n="menu.reportIssue">Report Issue</span>
@@ -302,63 +306,7 @@
         </div>
       </div>
 
-      <!-- Admin View -->
-      <div id="admin-view" class="view">
-        <div class="view-header">
-          <h2 data-i18n="admin.title">Admin Panel</h2>
-        </div>
 
-        <!-- Global Stats -->
-        <div class="admin-stats-grid">
-          <div class="admin-stat-card">
-            <span class="admin-stat-icon">👥</span>
-            <span class="admin-stat-val" id="admin-stat-users">0</span>
-            <span class="admin-stat-label" data-i18n="admin.users">Users</span>
-          </div>
-          <div class="admin-stat-card">
-            <span class="admin-stat-icon">📚</span>
-            <span class="admin-stat-val" id="admin-stat-books">0</span>
-            <span class="admin-stat-label" data-i18n="admin.totalBooks">Total Books</span>
-          </div>
-          <div class="admin-stat-card">
-            <span class="admin-stat-icon">✅</span>
-            <span class="admin-stat-val" id="admin-stat-read">0</span>
-            <span class="admin-stat-label" data-i18n="admin.booksRead">Books Read</span>
-          </div>
-          <div class="admin-stat-card">
-            <span class="admin-stat-icon">📄</span>
-            <span class="admin-stat-val" id="admin-stat-pages">0</span>
-            <span class="admin-stat-label" data-i18n="admin.pagesRead">Pages Read</span>
-          </div>
-          <div class="admin-stat-card">
-            <span class="admin-stat-icon">📝</span>
-            <span class="admin-stat-val" id="admin-stat-sessions">0</span>
-            <span class="admin-stat-label" data-i18n="admin.sessions">Sessions</span>
-          </div>
-          <div class="admin-stat-card">
-            <span class="admin-stat-icon">🎧</span>
-            <span class="admin-stat-val" id="admin-stat-listening">0</span>
-            <span class="admin-stat-label" data-i18n="admin.listeningHrs">Listening Hrs</span>
-          </div>
-        </div>
-
-        <!-- User Management -->
-        <div class="admin-section">
-          <div class="admin-section-header">
-            <h3 data-i18n="admin.userManagement">User Management</h3>
-            <button id="admin-add-user-btn" class="btn btn-primary btn-sm" data-i18n="admin.addUser">+ Add User</button>
-          </div>
-          <div id="admin-users-list" class="admin-users-list">
-            <div class="loading" data-i18n="admin.loadingUsers">Loading users...</div>
-          </div>
-        </div>
-
-        <!-- Per-User Breakdown -->
-        <div class="admin-section">
-          <h3 data-i18n="admin.perUserStats">Per-User Stats</h3>
-          <div id="admin-per-user" class="admin-per-user"></div>
-        </div>
-      </div>
 
       <!-- Activity Calendar Modal -->
       <div id="calendar-modal" class="modal hidden">
@@ -590,9 +538,18 @@
               <input type="date" id="book-start-date" />
             </div>
 
-            <div class="form-group">
-              <label for="book-finish-date" data-i18n="book.finishDate">Finish Date</label>
-              <input type="date" id="book-finish-date" />
+            <div class="form-group" id="finish-date-group">
+              <label data-i18n="book.finishDate">Finish Date</label>
+              <div class="finish-date-row">
+                <select id="book-finish-date-precision" class="filter-select finish-date-precision-select">
+                  <option value="day" data-i18n="book.exactDate">Exact date</option>
+                  <option value="month" data-i18n="book.monthYear">Month & year</option>
+                  <option value="year" data-i18n="book.yearOnly">Year only</option>
+                </select>
+                <div id="finish-date-input-wrapper">
+                  <input type="date" id="book-finish-date" />
+                </div>
+              </div>
             </div>
 
             <div class="form-group">
@@ -640,15 +597,7 @@
         </svg>
         <span data-i18n="nav.dashboard">Dashboard</span>
       </button>
-      <button class="nav-item hidden" id="admin-nav-btn" data-view="admin">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
-          <path
-            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1.08z">
-          </path>
-        </svg>
-        <span data-i18n="nav.admin">Admin</span>
-      </button>
+
     </nav>
 
     <!-- Floating Action Button -->
@@ -866,81 +815,7 @@
     </div>
 
     <!-- Admin: Add/Edit User Modal -->
-    <div id="user-modal" class="modal hidden">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2 id="user-modal-title" data-i18n="admin.addUserTitle">Add User</h2>
-          <button id="user-modal-close" class="btn-icon" aria-label="Close">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-        <form id="user-form">
-          <input type="hidden" id="user-edit-id" />
-          <div class="form-group">
-            <label for="user-username" data-i18n="admin.usernameLabel">Username *</label>
-            <input type="text" id="user-username" required autocomplete="off" />
-          </div>
-          <div class="form-group" id="user-password-group">
-            <label for="user-password" data-i18n="admin.passwordLabel">Password *</label>
-            <input type="password" id="user-password" autocomplete="new-password" />
-          </div>
-          <div class="form-group">
-            <label for="user-display-name" data-i18n="admin.displayName">Display Name</label>
-            <input type="text" id="user-display-name" placeholder="Optional"
-              data-i18n-placeholder="admin.displayNamePlaceholder" />
-          </div>
-          <div class="form-group">
-            <label for="user-role" data-i18n="admin.role">Role</label>
-            <select id="user-role">
-              <option value="user" data-i18n="admin.roleUser">User</option>
-              <option value="admin" data-i18n="admin.roleAdmin">Admin</option>
-            </select>
-          </div>
-          <div class="form-actions">
-            <button type="button" id="user-cancel-btn" class="btn btn-secondary"
-              data-i18n="admin.cancel">Cancel</button>
-            <button type="submit" class="btn btn-primary" data-i18n="admin.save">Save</button>
-          </div>
-          <div id="user-form-error" class="error-message"></div>
-        </form>
-      </div>
-    </div>
 
-    <!-- Admin: Reset Password Modal -->
-    <div id="reset-pw-modal" class="modal hidden">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2 data-i18n="admin.resetPassword">Reset Password</h2>
-          <button id="reset-pw-close" class="btn-icon" aria-label="Close">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-        <form id="reset-pw-form">
-          <input type="hidden" id="reset-pw-user-id" />
-          <p id="reset-pw-username-label" class="modal-subtitle"></p>
-          <div class="form-group">
-            <label for="reset-pw-new" data-i18n="admin.newPasswordLabel">New Password *</label>
-            <input type="password" id="reset-pw-new" required autocomplete="new-password" />
-          </div>
-          <div class="form-group">
-            <label for="reset-pw-confirm" data-i18n="admin.confirmPasswordLabel">Confirm Password *</label>
-            <input type="password" id="reset-pw-confirm" required autocomplete="new-password" />
-          </div>
-          <div class="form-actions">
-            <button type="button" id="reset-pw-cancel" class="btn btn-secondary"
-              data-i18n="admin.cancel">Cancel</button>
-            <button type="submit" class="btn btn-primary" data-i18n="admin.resetPasswordBtn">Reset Password</button>
-          </div>
-          <div id="reset-pw-error" class="error-message"></div>
-        </form>
-      </div>
-    </div>
 
     <!-- Toast Notification -->
     <div id="toast-container" class="toast-container"></div>
