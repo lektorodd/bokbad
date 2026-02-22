@@ -43,6 +43,7 @@ function serializeBook($book) {
     $book['current_duration_min'] = (int)($book['current_duration_min'] ?? 0);
     $book['current_percentage'] = (float)($book['current_percentage'] ?? 0);
     $book['series_id'] = $book['series_id'] ? (int)$book['series_id'] : null;
+    $book['series_name'] = $book['series_name'] ?? null;
     $book['series_order'] = $book['series_order'] ? (int)$book['series_order'] : null;
     return $book;
 }
@@ -55,18 +56,23 @@ function handleGetBooks($db, $userId) {
     $search = $_GET['search'] ?? null;
     $isAudiobook = $_GET['isAudiobook'] ?? null;
     
-    $query = "SELECT * FROM bokbad_books WHERE user_id = ?";
+    $query = "
+        SELECT b.*, s.name as series_name 
+        FROM bokbad_books b 
+        LEFT JOIN bokbad_series s ON b.series_id = s.id 
+        WHERE b.user_id = ?
+    ";
     $params = [$userId];
     
     // Add status filter
     if ($status && in_array($status, ['want-to-read', 'reading', 'read', 'up-next'])) {
-        $query .= " AND status = ?";
+        $query .= " AND b.status = ?";
         $params[] = $status;
     }
     
     // Add search filter
     if ($search) {
-        $query .= " AND (name LIKE ? OR JSON_SEARCH(authors, 'one', ?) IS NOT NULL)";
+        $query .= " AND (b.name LIKE ? OR JSON_SEARCH(b.authors, 'one', ?) IS NOT NULL)";
         $searchTerm = "%{$search}%";
         $params[] = $searchTerm;
         $params[] = $searchTerm;
@@ -74,23 +80,23 @@ function handleGetBooks($db, $userId) {
     
     // Add genre filter
     if ($genre) {
-        $query .= " AND JSON_SEARCH(genres, 'one', ?) IS NOT NULL";
+        $query .= " AND JSON_SEARCH(b.genres, 'one', ?) IS NOT NULL";
         $params[] = $genre;
     }
     
     // Add topic filter
     if ($topic) {
-        $query .= " AND JSON_SEARCH(topics, 'one', ?) IS NOT NULL";
+        $query .= " AND JSON_SEARCH(b.topics, 'one', ?) IS NOT NULL";
         $params[] = $topic;
     }
     
     // Add audiobook filter
     if ($isAudiobook !== null) {
-        $query .= " AND is_audiobook = ?";
+        $query .= " AND b.is_audiobook = ?";
         $params[] = (int)$isAudiobook;
     }
     
-    $query .= " ORDER BY created_at DESC";
+    $query .= " ORDER BY b.created_at DESC";
     
     $stmt = $db->prepare($query);
     $stmt->execute($params);
