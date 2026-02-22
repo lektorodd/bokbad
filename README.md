@@ -1,4 +1,4 @@
-# Bokbad - Book Tracking App ![Version](https://img.shields.io/badge/version-1.10.2-blue.svg)
+# Bokbad - Book Tracking App ![Version](https://img.shields.io/badge/version-1.10.4-blue.svg)
 
 A self-hosted, mobile-first web app for tracking your reading life. Keep a personal library of books you've read, are reading, or want to read — log reading sessions, set yearly goals, track streaks, and visualize your progress with charts and statistics. Supports paper books, e-books, and audiobooks with format-specific progress tracking, ISBN barcode scanning, and multi-language support (English & Norwegian).
 
@@ -104,6 +104,7 @@ bokbad/
 - ✅ Thoughts/key takeaways notes (Markdown support)
 - ✅ ISBN metadata lookup (Google Books + Open Library)
 - ✅ ISBN barcode scanning
+- ✅ Cover reuse from library (ISBN + title-match lookup)
 - ✅ Search, filter, and sort books
 - ✅ Dashboard with statistics and charts
 - ✅ Reading sessions / habit tracking
@@ -161,7 +162,10 @@ npm run build
 - `POST /api/upload/cover.php` - Upload cover image
 
 ### Metadata
-- `GET /api/metadata/isbn.php?isbn={isbn}` - Fetch book metadata
+- `GET /api/metadata/isbn.php?isbn={isbn}` - Fetch book metadata (checks local DB first)
+
+### Book Lookup
+- `GET /api/books/lookup.php?name={name}` - Find existing book by title (for cover reuse)
 
 ### Statistics
 - `GET /api/stats/summary.php` - Get summary stats

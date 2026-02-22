@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.4] - 2026-02-22
+
+### Fixed
+- **Dashboard Stats Overhaul** — unified all dashboard metrics into a single API endpoint (`dashboard_stats.php`), eliminating race conditions and inconsistent numbers across time periods. (#8)
+- **Listening Time** — hybrid approach: finished audiobooks use book-level total duration, in-progress audiobooks use session-based listening time, no double-counting.
+- **Consistent Metric Tiles** — all 4 time periods now show the same 6 metrics (days/book, books/mo, pages, streak, read time, listened) without label-swapping.
+
+### Changed
+- Deploy script now includes `dashboard_stats.php`.
+
+## [1.10.3] - 2026-02-22
+
+### Added
+- **Cover Reuse from Library** — when adding a book, the ISBN lookup now checks the local database first before calling Google Books / Open Library, reusing covers from books already in the system. (#10)
+- **Title-Match Cover Suggestion** — typing a book title in the add-book modal triggers a debounced search across all users. If a matching book with a cover is found, a banner appears offering to auto-fill the cover, authors, page count, and ISBN.
+- New API endpoint `api/books/lookup.php` for title-based book metadata lookup.
+
 ## [1.10.2] - 2026-02-22
 
 ### Fixed

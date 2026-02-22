@@ -732,6 +732,11 @@ function setupEventListeners() {
   document.getElementById('scan-isbn-btn').addEventListener('click', openScanner);
   document.getElementById('scanner-close-btn').addEventListener('click', closeScanner);
 
+  // Title lookup for cover reuse
+  document.getElementById('book-name').addEventListener('input', debounce(handleTitleLookup, 400));
+  document.getElementById('lookup-accept-btn').addEventListener('click', acceptLookupSuggestion);
+  document.getElementById('lookup-dismiss-btn').addEventListener('click', dismissLookupSuggestion);
+
   // Settings modal
   document.getElementById('settings-btn').addEventListener('click', openSettings);
   document.getElementById('settings-close-btn').addEventListener('click', closeSettings);
@@ -2163,6 +2168,9 @@ function openBookModal(bookId = null) {
   currentGenres = [];
   currentTopics = [];
   currentAuthors = [];
+  lookupDismissed = false;
+  pendingLookupResult = null;
+  document.getElementById('book-lookup-banner').classList.add('hidden');
   removeCoverPreview();
   renderGenreSelectGrid([]);
   renderTagChips('topic-chips', () => currentTopics, (v) => { currentTopics = v; });
@@ -2423,6 +2431,77 @@ async function closeScanner() {
   document.getElementById('scanner-viewfinder').innerHTML = '';
 }
 
+// ============ Title Lookup for Cover Reuse ============
+let lookupDismissed = false;
+let pendingLookupResult = null;
+
+async function handleTitleLookup() {
+  const name = document.getElementById('book-name').value.trim();
+  const bookId = document.getElementById('book-id').value;
+  const banner = document.getElementById('book-lookup-banner');
+
+  // Skip in edit mode, if dismissed, if cover already set, or if name too short
+  if (bookId || lookupDismissed || currentUploadedCoverUrl || name.length < 3) {
+    banner.classList.add('hidden');
+    return;
+  }
+
+  try {
+    const result = await API.lookupBook(name);
+    if (result.success && result.book && result.book.coverImage) {
+      pendingLookupResult = result.book;
+      document.getElementById('lookup-banner-img').src = result.book.coverImage;
+      document.getElementById('lookup-banner-title').textContent = result.book.title;
+      banner.classList.remove('hidden');
+    } else {
+      banner.classList.add('hidden');
+      pendingLookupResult = null;
+    }
+  } catch {
+    banner.classList.add('hidden');
+    pendingLookupResult = null;
+  }
+}
+
+function acceptLookupSuggestion() {
+  if (!pendingLookupResult) return;
+
+  const book = pendingLookupResult;
+
+  // Set cover
+  if (book.coverImage) {
+    currentUploadedCoverUrl = book.coverImage;
+    showCoverPreview(book.coverImage);
+  }
+
+  // Auto-fill authors if empty
+  if (book.authors && book.authors.length > 0 && currentAuthors.length === 0) {
+    currentAuthors = [...book.authors];
+    renderTagChips('author-chips', () => currentAuthors, (v) => { currentAuthors = v; });
+    document.getElementById('book-authors').value = '';
+  }
+
+  // Auto-fill total pages if empty
+  if (book.totalPages && !document.getElementById('book-total-pages').value) {
+    document.getElementById('book-total-pages').value = book.totalPages;
+  }
+
+  // Auto-fill ISBN if empty
+  if (book.isbn && !document.getElementById('book-isbn').value) {
+    document.getElementById('book-isbn').value = book.isbn;
+  }
+
+  // Hide banner
+  document.getElementById('book-lookup-banner').classList.add('hidden');
+  pendingLookupResult = null;
+}
+
+function dismissLookupSuggestion() {
+  lookupDismissed = true;
+  document.getElementById('book-lookup-banner').classList.add('hidden');
+  pendingLookupResult = null;
+}
+
 // ============ ISBN Metadata Fetch ============
 async function fetchBookMetadata() {
   let isbn = document.getElementById('book-isbn').value.trim();
@@ -2528,21 +2607,14 @@ async function loadDashboard() {
   document.getElementById('monthly-chart-container').classList.toggle('hidden', is30d);
   document.getElementById('genre-chart-container').style.display = is30d ? 'none' : '';
 
-  if (is30d) {
-    await Promise.all([
-      loadSummaryStats(from, to),
-      loadReadingPace(from, to),
-      loadDailyActivityChart()
-    ]);
-  } else {
-    // Reset metric labels that may have been overridden by 30d view
-    document.querySelector('#stat-pace + .stat-metric-label').textContent = t('dashboard.daysPerBook');
-    document.querySelector('#stat-per-month + .stat-metric-label').textContent = t('dashboard.booksPerMonth');
-    document.querySelector('#stat-listening + .stat-metric-label').textContent = t('dashboard.listened');
+  // Single unified stats call for all periods
+  const statsPromise = loadUnifiedStats(from, to);
 
+  if (is30d) {
+    await statsPromise;
+  } else {
     await Promise.all([
-      loadSummaryStats(from, to),
-      loadReadingPace(from, to),
+      statsPromise,
       loadYearlyStats(new Date().getFullYear(), false),
       loadGenreChart()
     ]);
@@ -2550,59 +2622,49 @@ async function loadDashboard() {
   }
 }
 
-async function loadSummaryStats(from, to) {
+async function loadUnifiedStats(from, to) {
   try {
-    const result = await API.getSummaryStats(from, to);
-    if (result.success) {
-      document.getElementById('stat-read').textContent = result.stats.read;
-      document.getElementById('stat-reading').textContent = result.stats.reading;
-      document.getElementById('stat-upnext').textContent = result.stats.upNext || 0;
-      document.getElementById('stat-want').textContent = result.stats.wantToRead;
+    const result = await API.getDashboardStats(from, to);
+    if (!result.success) return;
 
-      if (result.stats.avgDaysToFinish !== null && result.stats.avgDaysToFinish !== undefined) {
-        document.getElementById('stat-pace').textContent = result.stats.avgDaysToFinish;
-      }
-      if (result.stats.totalPages) {
-        document.getElementById('stat-pages').textContent = result.stats.totalPages.toLocaleString();
-      }
+    const { counts, totalPages, readMinutes, listenMinutes, avgDaysToFinish, booksPerMonth, streak, daily } = result;
 
-      // Listening hours
-      const minutes = result.stats.totalListeningMinutes || 0;
-      if (minutes > 0) {
-        const h = Math.floor(minutes / 60);
-        const m = minutes % 60;
-        document.getElementById('stat-listening').textContent = m > 0 ? `${h}h ${m}m` : `${h}h`;
-      } else {
-        document.getElementById('stat-listening').textContent = '—';
-      }
+    // Status pills
+    document.getElementById('stat-read').textContent = counts.read;
+    document.getElementById('stat-reading').textContent = counts.reading;
+    document.getElementById('stat-upnext').textContent = counts.upNext || 0;
+    document.getElementById('stat-want').textContent = counts.wantToRead;
+
+    // Metric tiles (consistent across all periods)
+    document.getElementById('stat-pace').textContent = avgDaysToFinish !== null ? avgDaysToFinish : '—';
+    document.getElementById('stat-per-month').textContent = booksPerMonth;
+    document.getElementById('stat-pages').textContent = totalPages > 0 ? totalPages.toLocaleString() : '0';
+    document.getElementById('stat-streak').textContent = streak;
+
+    // Read time (paper + ebook sessions)
+    if (readMinutes > 0) {
+      const rh = Math.floor(readMinutes / 60);
+      const rm = readMinutes % 60;
+      document.getElementById('stat-read-time').textContent = rm > 0 ? `${rh}h ${rm}m` : `${rh}h`;
+    } else {
+      document.getElementById('stat-read-time').textContent = '—';
+    }
+
+    // Listen time (audiobook sessions)
+    if (listenMinutes > 0) {
+      const lh = Math.floor(listenMinutes / 60);
+      const lm = listenMinutes % 60;
+      document.getElementById('stat-listen-time').textContent = lm > 0 ? `${lh}h ${lm}m` : `${lh}h`;
+    } else {
+      document.getElementById('stat-listen-time').textContent = '—';
+    }
+
+    // Render daily chart if we have daily data (30d view)
+    if (daily && daily.length > 0) {
+      renderDailyChart(daily);
     }
   } catch (error) {
-    console.error('Failed to load summary stats:', error);
-  }
-}
-
-async function loadReadingPace(from, to) {
-  try {
-    const result = await API.getReadingPace(from, to);
-    if (result.success) {
-      const stats = result.stats;
-      if (stats.booksPerMonth !== undefined) {
-        document.getElementById('stat-per-month').textContent = stats.booksPerMonth;
-      }
-      if (stats.avgDaysToFinish !== null && stats.avgDaysToFinish !== undefined) {
-        document.getElementById('stat-pace').textContent = stats.avgDaysToFinish;
-      }
-      if (stats.readingStreak !== undefined) {
-        document.getElementById('stat-streak').textContent = stats.readingStreak;
-      }
-      if (stats.estimatedPages) {
-        document.getElementById('stat-pages').textContent = stats.estimatedPages.toLocaleString();
-      } else if (stats.totalPagesThisYear) {
-        document.getElementById('stat-pages').textContent = stats.totalPagesThisYear.toLocaleString();
-      }
-    }
-  } catch (error) {
-    console.error('Failed to load reading pace:', error);
+    console.error('Failed to load dashboard stats:', error);
   }
 }
 
@@ -2745,38 +2807,6 @@ function populateYearSelector() {
   selector.innerHTML = years.map(year =>
     `<option value="${year}" ${year === currentYear ? 'selected' : ''}>${year}</option>`
   ).join('');
-}
-
-// ============ 30-Day Daily Activity Chart ============
-async function loadDailyActivityChart() {
-  try {
-    const result = await API.getDailyActivity(30);
-    if (!result.success) return;
-
-    const { days, summary } = result;
-
-    // Update summary stats in the metric pills
-    const totalMin = summary.totalReadMinutes + summary.totalListenMinutes;
-    const h = Math.floor(totalMin / 60);
-    const m = totalMin % 60;
-    document.getElementById('stat-pace').textContent = summary.daysActive;
-    document.querySelector('#stat-pace + .stat-metric-label').textContent = t('dashboard.daysActive');
-    document.getElementById('stat-per-month').textContent = summary.booksFinished;
-    document.querySelector('#stat-per-month + .stat-metric-label').textContent = t('dashboard.finished');
-    document.getElementById('stat-pages').textContent = summary.totalPages;
-    document.getElementById('stat-listening').textContent = m > 0 ? `${h}h ${m}m` : h > 0 ? `${h}h` : '—';
-    document.querySelector('#stat-listening + .stat-metric-label').textContent = t('dashboard.totalTime');
-
-    // Audiobook listening stat
-    const lh = Math.floor(summary.totalListenMinutes / 60);
-    const lm = summary.totalListenMinutes % 60;
-    document.getElementById('stat-audiobook-time').textContent = lm > 0 ? `${lh}h ${lm}m` : lh > 0 ? `${lh}h` : '—';
-
-    // Render chart
-    renderDailyChart(days);
-  } catch (error) {
-    console.error('Failed to load daily activity:', error);
-  }
 }
 
 function renderDailyChart(days) {

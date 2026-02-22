@@ -20,6 +20,27 @@ if (empty($isbn)) {
 // Clean ISBN (remove hyphens and spaces)
 $isbn = preg_replace('/[^0-9X]/i', '', $isbn);
 
+// Check local database first — reuse cover from any user's book with same ISBN
+$db = Database::getInstance()->getConnection();
+$stmt = $db->prepare("
+    SELECT name, authors, cover_image, total_pages
+    FROM bokbad_books
+    WHERE isbn = ? AND cover_image IS NOT NULL AND cover_image != ''
+    LIMIT 1
+");
+$stmt->execute([$isbn]);
+$localBook = $stmt->fetch();
+
+if ($localBook) {
+    sendSuccess(['metadata' => [
+        'title'      => $localBook['name'],
+        'authors'    => json_decode($localBook['authors'], true) ?: [],
+        'coverImage' => $localBook['cover_image'],
+        'pageCount'  => $localBook['total_pages'] ? (int)$localBook['total_pages'] : null,
+        'source'     => 'Local Library',
+    ]]);
+}
+
 // Try Google Books API first
 $metadata = fetchFromGoogleBooks($isbn);
 

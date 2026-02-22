@@ -57,6 +57,11 @@ class API {
     return this.get(`/metadata/isbn.php?isbn=${encodeURIComponent(isbn)}`);
   }
 
+  // Lookup existing book by title (for cover reuse)
+  static async lookupBook(name) {
+    return this.get(`/books/lookup.php?name=${encodeURIComponent(name)}`);
+  }
+
   // Tags (for autocomplete)
   static async getTags() {
     return this.get('/books/tags.php');
@@ -96,6 +101,15 @@ class API {
 
   static async getDailyActivity(days = 30) {
     return this.get(`/stats/daily_activity.php?days=${days}`);
+  }
+
+  static async getDashboardStats(from, to) {
+    let url = '/stats/dashboard_stats.php';
+    const params = [];
+    if (from) params.push(`from=${from}`);
+    if (to) params.push(`to=${to}`);
+    if (params.length) url += '?' + params.join('&');
+    return this.get(url);
   }
 
   static async getActivityCalendar(year, month) {
