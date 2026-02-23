@@ -32,3 +32,12 @@ Thumbs.db
 # AI tooling
 .gemini/
 .agent/
+
+# AI-generated docs (keep only README.md and CHANGELOG.md)
+EMERGENCY_FIX.md
+DEPLOYMENT.md
+MIGRATION_GUIDE.md
+QUICKSTART.md
+UPDATE_WORKFLOW.md
+IMPLEMENTATION_PLAN.md
+WALKTHROUGH.md
