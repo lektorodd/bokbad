@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.2] - 2026-02-23
+
+### Changed
+- **Dashboard Period Buttons** — replaced bordered pill buttons with a modern iOS-style segmented control (subtle background, elevated active state, smooth transitions, dark mode support).
+- **Default Period** — dashboard now defaults to "Last 30 Days" instead of "All Time", with buttons ordered short→long (30d → 12m → This Year → All Time).
+
 ## [1.12.1] - 2026-02-23
 
 ### Fixed

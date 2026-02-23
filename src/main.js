@@ -2728,7 +2728,7 @@ async function fetchBookMetadata() {
 }
 
 // ============ Dashboard ============
-let currentPeriod = 'all';
+let currentPeriod = '30d';
 
 function getDateRange(period) {
   const now = new Date();
