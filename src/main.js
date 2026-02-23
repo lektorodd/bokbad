@@ -901,8 +901,8 @@ function setupEventListeners() {
 
   // Tag autocomplete
   // Genre grid is rendered in openBookModal, not via autocomplete
-  setupTagAutocomplete('book-topics', 'topic-suggestions', 'topic-chips', () => currentTopics, (val) => { currentTopics = val; }, BookManager.availableTopics);
-  setupTagAutocomplete('book-authors', 'author-suggestions', 'author-chips', () => currentAuthors, (val) => { currentAuthors = val; }, BookManager.availableAuthors);
+  setupTagAutocomplete('book-topics', 'topic-suggestions', 'topic-chips', () => currentTopics, (val) => { currentTopics = val; }, () => BookManager.availableTopics);
+  setupTagAutocomplete('book-authors', 'author-suggestions', 'author-chips', () => currentAuthors, (val) => { currentAuthors = val; }, () => BookManager.availableAuthors);
 
   // Session modal
   document.getElementById('session-close-btn').addEventListener('click', closeSessionModal);
@@ -935,7 +935,7 @@ function setupEventListeners() {
 }
 
 // ============ Tag Autocomplete ============
-function setupTagAutocomplete(inputId, suggestionsId, chipsId, getValues, setValues, suggestions) {
+function setupTagAutocomplete(inputId, suggestionsId, chipsId, getValues, setValues, getSuggestions) {
   const input = document.getElementById(inputId);
   const suggestionsEl = document.getElementById(suggestionsId);
 
@@ -947,6 +947,7 @@ function setupTagAutocomplete(inputId, suggestionsId, chipsId, getValues, setVal
     }
 
     const currentVals = getValues();
+    const suggestions = typeof getSuggestions === 'function' ? getSuggestions() : getSuggestions;
     const matches = suggestions.filter(s =>
       s.toLowerCase().includes(query) && !currentVals.some(v => v.toLowerCase() === s.toLowerCase())
     );
