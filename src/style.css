@@ -2836,9 +2836,28 @@ h6 {
 /* ===== Genre Select Grid ===== */
 .genre-select-grid {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
   padding: var(--spacing-sm) 0;
+}
+
+.genre-group-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: var(--spacing-xs);
+}
+
+.genre-group-label:first-child {
+  margin-top: 0;
+}
+
+.genre-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .genre-chip-option {

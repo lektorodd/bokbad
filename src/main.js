@@ -19,13 +19,20 @@ let currentTopics = [];
 let currentAuthors = [];
 
 // Predefined genre keys — labels come from i18n (genres.xxx)
-const PREDEFINED_GENRES = [
-  'fiction', 'nonfiction', 'biography', 'novel', 'thriller', 'mystery',
-  'scifi', 'fantasy', 'history', 'science', 'selfhelp', 'business',
-  'philosophy', 'poetry', 'children', 'ya', 'humor', 'travel',
-  'cooking', 'art', 'health', 'religion', 'politics', 'memoir',
-  'romance', 'horror', 'graphic', 'essays', 'classic', 'drama'
-];
+const GENRE_HIERARCHY = {
+  fiction: [
+    'novel', 'thriller', 'mystery', 'scifi', 'fantasy', 'romance',
+    'horror', 'drama', 'classic', 'poetry', 'humor', 'ya', 'children', 'graphic'
+  ],
+  nonfiction: [
+    'biography', 'memoir', 'history', 'science', 'selfhelp', 'business',
+    'philosophy', 'health', 'politics', 'religion', 'travel', 'cooking', 'art', 'essays'
+  ]
+};
+
+const FICTION_GENRES = new Set(GENRE_HIERARCHY.fiction);
+const NONFICTION_GENRES = new Set(GENRE_HIERARCHY.nonfiction);
+const PREDEFINED_GENRES = [...GENRE_HIERARCHY.fiction, ...GENRE_HIERARCHY.nonfiction];
 
 function getGenreLabel(key) {
   const label = t(`genres.${key}`);
@@ -36,7 +43,6 @@ function getGenreLabel(key) {
 // Map a legacy free-text genre to a predefined key (case-insensitive)
 function normalizeGenreKey(rawGenre) {
   const lower = rawGenre.trim().toLowerCase();
-  // Direct match
   if (PREDEFINED_GENRES.includes(lower)) return lower;
   // Try matching against English labels
   const enLabels = {
@@ -72,21 +78,38 @@ function normalizeGenreKey(rawGenre) {
 
 function normalizeGenres(genres) {
   if (!genres || !Array.isArray(genres)) return [];
-  const normalized = genres.map(g => normalizeGenreKey(g));
+  const normalized = genres.map(g => normalizeGenreKey(g))
+    .filter(g => g !== 'fiction' && g !== 'nonfiction'); // Strip legacy parent genres
   return [...new Set(normalized)]; // deduplicate
 }
 
 function renderGenreSelectGrid(selectedGenres = []) {
   const container = document.getElementById('genre-select-grid');
   if (!container) return;
-  container.innerHTML = PREDEFINED_GENRES.map(key => {
+
+  let html = '';
+  // Fiction section
+  html += `<div class="genre-group-label">${escapeHtml(getGenreLabel('fiction'))}</div>`;
+  html += `<div class="genre-group">`;
+  html += GENRE_HIERARCHY.fiction.map(key => {
     const selected = selectedGenres.includes(key) ? ' selected' : '';
     return `<button type="button" class="genre-chip-option${selected}" data-genre="${key}">${escapeHtml(getGenreLabel(key))}</button>`;
   }).join('');
+  html += `</div>`;
+
+  // Non-fiction section
+  html += `<div class="genre-group-label">${escapeHtml(getGenreLabel('nonfiction'))}</div>`;
+  html += `<div class="genre-group">`;
+  html += GENRE_HIERARCHY.nonfiction.map(key => {
+    const selected = selectedGenres.includes(key) ? ' selected' : '';
+    return `<button type="button" class="genre-chip-option${selected}" data-genre="${key}">${escapeHtml(getGenreLabel(key))}</button>`;
+  }).join('');
+  html += `</div>`;
+
+  container.innerHTML = html;
   container.querySelectorAll('.genre-chip-option').forEach(btn => {
     btn.addEventListener('click', () => {
       btn.classList.toggle('selected');
-      // Sync currentGenres
       currentGenres = Array.from(container.querySelectorAll('.genre-chip-option.selected'))
         .map(el => el.dataset.genre);
     });
@@ -1025,7 +1048,12 @@ function populateFilterDropdowns() {
   const topicFilter = document.getElementById('topic-filter');
 
   genreFilter.innerHTML = `<option value="">${escapeHtml(t('library.allGenres'))}</option>` +
-    PREDEFINED_GENRES.map(key => `<option value="${key}">${escapeHtml(getGenreLabel(key))}</option>`).join('');
+    `<optgroup label="${escapeHtml(getGenreLabel('fiction'))}">` +
+    GENRE_HIERARCHY.fiction.map(key => `<option value="${key}">${escapeHtml(getGenreLabel(key))}</option>`).join('') +
+    `</optgroup>` +
+    `<optgroup label="${escapeHtml(getGenreLabel('nonfiction'))}">` +
+    GENRE_HIERARCHY.nonfiction.map(key => `<option value="${key}">${escapeHtml(getGenreLabel(key))}</option>`).join('') +
+    `</optgroup>`;
 
   topicFilter.innerHTML = '<option value="">All Topics</option>' +
     BookManager.availableTopics.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
