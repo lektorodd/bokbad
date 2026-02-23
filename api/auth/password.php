@@ -31,9 +31,12 @@ if (!$user || !password_verify($currentPassword, $user['password_hash'])) {
     sendError('Current password is incorrect', 401);
 }
 
-// Update password
+// Update password and clear must_change_password flag
 $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
-$stmt = $db->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
+$stmt = $db->prepare("UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?");
 $stmt->execute([$newHash, $userId]);
+
+// Clear session flag
+$_SESSION['must_change_password'] = false;
 
 sendSuccess(['changed' => true]);

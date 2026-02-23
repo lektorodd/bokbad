@@ -230,6 +230,11 @@ async function init() {
       console.error('Init data loading failed:', err);
       showToast(t('toast.dataLoadFailed'), 'error');
     }
+    // Force password change if flagged
+    if (Auth.currentUser?.must_change_password) {
+      openSettings();
+      showToast(t('toast.mustChangePassword'), 'warning');
+    }
   } else {
     showLogin();
     setupLoginListeners();
@@ -396,6 +401,11 @@ function setupLoginListeners() {
       } catch (err) {
         console.error('Post-login data loading failed:', err);
         showToast(t('toast.dataLoadFailed'), 'error');
+      }
+      // Force password change if flagged
+      if (Auth.currentUser?.must_change_password) {
+        openSettings();
+        showToast(t('toast.mustChangePassword'), 'warning');
       }
     } else {
       errorEl.textContent = result.error;
@@ -3468,6 +3478,10 @@ async function handleChangePassword() {
       document.getElementById('current-password').value = '';
       document.getElementById('new-password').value = '';
       document.getElementById('confirm-password').value = '';
+      // Clear forced password change flag
+      if (Auth.currentUser) {
+        Auth.currentUser.must_change_password = false;
+      }
       showToast(t('toast.passwordChanged'), 'success');
     } else {
       statusEl.textContent = result.error || t('toast.operationFailed');

@@ -296,7 +296,8 @@
         "fillAllFields": "Please fill in all fields",
         "operationFailed": "Operation failed",
         "networkError": "Network error",
-        "dataLoadFailed": "Some data failed to load — try refreshing"
+        "dataLoadFailed": "Some data failed to load — try refreshing",
+        "mustChangePassword": "You must change your password before continuing"
     },
     "pull": {
         "pullToRefresh": "Pull to refresh",

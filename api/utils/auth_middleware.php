@@ -52,7 +52,8 @@ function getCurrentUser() {
     return [
         'id' => $_SESSION['user_id'],
         'username' => $_SESSION['username'],
-        'role' => $_SESSION['user_role'] ?? 'user'
+        'role' => $_SESSION['user_role'] ?? 'user',
+        'must_change_password' => $_SESSION['must_change_password'] ?? false
     ];
 }
 
@@ -72,11 +73,12 @@ function requireAdmin() {
 }
 
 // Login user
-function loginUser($userId, $username, $role = 'user') {
+function loginUser($userId, $username, $role = 'user', $mustChangePw = false) {
     ensureSession();
     $_SESSION['user_id'] = $userId;
     $_SESSION['username'] = $username;
     $_SESSION['user_role'] = $role;
+    $_SESSION['must_change_password'] = (bool)$mustChangePw;
     $_SESSION['login_time'] = time();
 }
 
@@ -91,7 +93,7 @@ function logoutUser() {
 function verifyUserPassword($username, $password) {
     $db = Database::getInstance()->getConnection();
     
-    $stmt = $db->prepare("SELECT id, username, password_hash, role FROM users WHERE username = ?");
+    $stmt = $db->prepare("SELECT id, username, password_hash, role, must_change_password FROM users WHERE username = ?");
     $stmt->execute([$username]);
     $user = $stmt->fetch();
     
@@ -103,7 +105,8 @@ function verifyUserPassword($username, $password) {
         return [
             'id' => $user['id'],
             'username' => $user['username'],
-            'role' => $user['role'] ?? 'user'
+            'role' => $user['role'] ?? 'user',
+            'must_change_password' => (bool)$user['must_change_password']
         ];
     }
     

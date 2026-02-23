@@ -296,7 +296,8 @@
         "fillAllFields": "Vennligst fyll ut alle felt",
         "operationFailed": "Operasjon mislyktes",
         "networkError": "Nettverksfeil",
-        "dataLoadFailed": "Noen data kunne ikke lastes — prøv å oppdatere"
+        "dataLoadFailed": "Noen data kunne ikke lastes — prøv å oppdatere",
+        "mustChangePassword": "Du må endre passordet ditt før du kan fortsette"
     },
     "pull": {
         "pullToRefresh": "Dra for å oppdatere",

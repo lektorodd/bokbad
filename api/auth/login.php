@@ -40,13 +40,14 @@ if (!$rememberMe) {
 }
 
 // Login user
-loginUser($user['id'], $user['username'], $user['role'] ?? 'user');
+loginUser($user['id'], $user['username'], $user['role'] ?? 'user', $user['must_change_password'] ?? false);
 
 // Return success
 sendSuccess([
     'user' => [
         'id' => $user['id'],
         'username' => $user['username'],
-        'role' => $user['role'] ?? 'user'
+        'role' => $user['role'] ?? 'user',
+        'must_change_password' => (bool)($user['must_change_password'] ?? false)
     ]
 ]);

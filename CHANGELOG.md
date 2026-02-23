@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.3] - 2026-02-23
+
+### Changed
+- **Dashboard** — removed redundant "Oversikt" heading; the bottom nav already labels the tab.
+
+### Added
+- **Force Password Change** — users flagged with `must_change_password` are prompted to change their password on login. Settings modal opens automatically with a warning toast.
+
 ## [1.12.2] - 2026-02-23
 
 ### Changed
