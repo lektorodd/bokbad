@@ -215,8 +215,8 @@ function handleCreateBook($db, $userId) {
     
     $bookId = $db->lastInsertId();
     
-    // Fetch and return created book
-    $stmt = $db->prepare("SELECT * FROM bokbad_books WHERE id = ?");
+    // Fetch and return created book (with series name)
+    $stmt = $db->prepare("SELECT b.*, s.name as series_name FROM bokbad_books b LEFT JOIN bokbad_series s ON b.series_id = s.id WHERE b.id = ?");
     $stmt->execute([$bookId]);
     $book = $stmt->fetch();
     
@@ -432,8 +432,8 @@ function handleUpdateBook($db, $userId) {
     $stmt = $db->prepare($query);
     $stmt->execute($params);
     
-    // Fetch and return updated book
-    $stmt = $db->prepare("SELECT * FROM bokbad_books WHERE id = ?");
+    // Fetch and return updated book (with series name)
+    $stmt = $db->prepare("SELECT b.*, s.name as series_name FROM bokbad_books b LEFT JOIN bokbad_series s ON b.series_id = s.id WHERE b.id = ?");
     $stmt->execute([$bookId]);
     $book = $stmt->fetch();
     

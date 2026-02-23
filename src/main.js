@@ -807,6 +807,18 @@ function setupEventListeners() {
   // New series button
   document.getElementById('new-series-btn').addEventListener('click', createNewSeries);
 
+  // Auto-fill author when selecting a series
+  document.getElementById('book-series').addEventListener('change', (e) => {
+    const seriesId = parseInt(e.target.value);
+    if (!seriesId || currentAuthors.length > 0) return;
+    // Find an existing book in this series to get the author
+    const seriesBook = BookManager.books.find(b => b.series_id === seriesId && b.authors && b.authors.length > 0);
+    if (seriesBook) {
+      currentAuthors = [...seriesBook.authors];
+      renderTagChips('author-chips', () => currentAuthors, (v) => { currentAuthors = v; });
+    }
+  });
+
   // Goal widget click → open settings
   // Goal widget: tap = show books list, long-press = settings
   const goalWidget = document.getElementById('goal-widget');
@@ -1106,6 +1118,20 @@ function renderActiveFilterPills() {
       label: `✍ ${BookManager.currentAuthorFilter}`,
       clear: () => {
         BookManager.setAuthorFilter('');
+        renderBooks();
+        renderActiveFilterPills();
+      }
+    });
+  }
+
+  // Series pill
+  if (BookManager.currentSeriesFilter) {
+    const seriesName = BookManager._seriesFilterName || 'Series';
+    pills.push({
+      label: `📖 ${seriesName}`,
+      clear: () => {
+        BookManager.setSeriesFilter(null);
+        BookManager._seriesFilterName = null;
         renderBooks();
         renderActiveFilterPills();
       }
@@ -1743,7 +1769,7 @@ function openDetailModal(bookId) {
   // Series
   let seriesHtml = '';
   if (book.series_name) {
-    seriesHtml = `<span class="detail-meta-chip detail-series-link" data-series="${escapeHtml(book.series_name)}">${escapeHtml(book.series_name)}${book.series_order ? ` #${book.series_order}` : ''}</span>`;
+    seriesHtml = `<span class="detail-meta-chip detail-series-link" data-series="${escapeHtml(book.series_name)}" data-series-id="${book.series_id}">${escapeHtml(book.series_name)}${book.series_order ? ` #${book.series_order}` : ''}</span>`;
   }
 
   // Progress
@@ -1853,7 +1879,9 @@ function openDetailModal(bookId) {
   const seriesLink = body.querySelector('.detail-series-link');
   if (seriesLink) {
     seriesLink.addEventListener('click', () => {
-      navigateToLibraryWithFilter({ search: seriesLink.dataset.series });
+      const seriesId = parseInt(seriesLink.dataset.seriesId);
+      const seriesName = seriesLink.dataset.series;
+      navigateToLibraryWithFilter({ series: { id: seriesId, name: seriesName } });
     });
   }
 
@@ -1968,13 +1996,14 @@ function closeDetailModal() {
 }
 
 // Navigate to library with a specific filter applied
-function navigateToLibraryWithFilter({ author, status, genre, topic, search } = {}) {
+function navigateToLibraryWithFilter({ author, status, genre, topic, search, series } = {}) {
   // Reset all filters first
   BookManager.setSearch('');
   BookManager.setFilter([]);
   BookManager.setGenreFilter('');
   BookManager.setTopicFilter('');
   BookManager.setAuthorFilter('');
+  BookManager.setSeriesFilter(null);
   BookManager.setAudiobookFilter('all');
   BookManager.setSort('newest');
 
@@ -2007,6 +2036,11 @@ function navigateToLibraryWithFilter({ author, status, genre, topic, search } = 
   if (search) {
     BookManager.setSearch(search);
     document.getElementById('search-input').value = search;
+  }
+  if (series) {
+    BookManager.setSeriesFilter(series.id);
+    // Store the name for the pill display
+    BookManager._seriesFilterName = series.name;
   }
 
   // Close detail modal and navigate to library
@@ -2291,6 +2325,17 @@ function openBookModal(bookId = null) {
     // Series
     populateSeriesDropdown(book.series_id);
     document.getElementById('book-series-order').value = book.series_order || '';
+
+    // Auto-open collapsible sections when they have data
+    const detailsSection = form.querySelectorAll('.form-section');
+    if (detailsSection.length >= 2) {
+      // Always open Details in edit mode
+      detailsSection[0].open = true;
+      // Open Dates & Notes if book has dates or thoughts
+      if (book.start_date || book.finish_date || book.thoughts) {
+        detailsSection[1].open = true;
+      }
+    }
   } else {
     // Add mode
     document.getElementById('book-id').value = '';
@@ -2299,6 +2344,11 @@ function openBookModal(bookId = null) {
   }
 
   modal.classList.remove('hidden');
+  // Scroll to top of modal content
+  requestAnimationFrame(() => {
+    const content = modal.querySelector('.modal-content');
+    if (content) content.scrollTop = 0;
+  });
 }
 
 function closeBookModal() {

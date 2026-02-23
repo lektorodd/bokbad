@@ -1,4 +1,4 @@
-# Bokbad - Book Tracking App ![Version](https://img.shields.io/badge/version-1.11.0-blue.svg)
+# Bokbad - Book Tracking App ![Version](https://img.shields.io/badge/version-1.12.0-blue.svg)
 
 A self-hosted, mobile-first web app for tracking your reading life. Keep a personal library of books you've read, are reading, or want to read — log reading sessions, set yearly goals, track streaks, and visualize your progress with charts and statistics. Supports paper books, e-books, and audiobooks with format-specific progress tracking, ISBN barcode scanning, and multi-language support (English & Norwegian).
 

@@ -129,7 +129,9 @@
         "dismiss": "Avvis",
         "exactDate": "Eksakt dato",
         "monthYear": "Måned og år",
-        "yearOnly": "Bare år"
+        "yearOnly": "Bare år",
+        "details": "📋 Detaljer",
+        "datesNotes": "📅 Datoer og notater"
     },
     "session": {
         "logReading": "Logg lesing",

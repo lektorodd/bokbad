@@ -129,7 +129,9 @@
         "dismiss": "Dismiss",
         "exactDate": "Exact date",
         "monthYear": "Month & year",
-        "yearOnly": "Year only"
+        "yearOnly": "Year only",
+        "details": "📋 Details",
+        "datesNotes": "📅 Dates & Notes"
     },
     "session": {
         "logReading": "Log Reading",

@@ -370,10 +370,11 @@
               </svg>
             </button>
           </div>
-          <form id="book-form" class="book-form">
+          <form id="book-form" class="book-form book-form-compact">
             <input type="hidden" id="book-id" />
 
-            <div class="form-group">
+            <!-- Essential Fields (always visible) -->
+            <div class="form-group form-group-compact">
               <label for="book-isbn" data-i18n="book.isbn">ISBN (optional - auto-fill)</label>
               <div class="isbn-input-group">
                 <input type="text" id="book-isbn" placeholder="Enter ISBN"
@@ -400,7 +401,7 @@
               </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group form-group-compact">
               <label for="book-name" data-i18n="book.title">Book Title *</label>
               <input type="text" id="book-name" required />
               <div id="book-lookup-banner" class="lookup-banner hidden">
@@ -418,7 +419,7 @@
               </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group form-group-compact">
               <label for="book-authors" data-i18n="book.authors">Authors</label>
               <div class="tag-input-wrapper" id="author-input-wrapper">
                 <div class="tag-chips" id="author-chips"></div>
@@ -428,135 +429,150 @@
               </div>
             </div>
 
-            <div class="form-group">
-              <label for="book-cover" data-i18n="book.coverImage">Cover Image</label>
-              <div class="cover-upload">
-                <input type="file" id="book-cover" accept="image/*" />
-                <div id="cover-preview" class="cover-preview hidden">
-                  <img id="cover-preview-img" src="" alt="Cover preview" />
-                  <button type="button" id="remove-cover-btn" class="btn-icon-small">×</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label data-i18n="book.genres">Genres</label>
-              <div class="genre-select-grid" id="genre-select-grid">
-                <!-- Populated by JS with clickable genre chips -->
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="book-topics" data-i18n="book.topics">Topics</label>
-              <div class="tag-input-wrapper" id="topic-input-wrapper">
-                <div class="tag-chips" id="topic-chips"></div>
-                <input type="text" id="book-topics" placeholder="Type to add topic..." autocomplete="off"
-                  data-i18n-placeholder="book.topicsPlaceholder" />
-                <div class="tag-suggestions hidden" id="topic-suggestions"></div>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="book-status" data-i18n="book.statusLabel">Status *</label>
-              <select id="book-status" required>
-                <option value="want-to-read" data-i18n="status.wantToRead">Want to Read</option>
-                <option value="up-next" data-i18n="status.upNext">Up Next</option>
-                <option value="reading" data-i18n="status.reading">Reading</option>
-                <option value="read" data-i18n="status.read">Read</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="book-format" data-i18n="book.formatLabel">Format</label>
-              <select id="book-format">
-                <option value="paper" data-i18n="format.paper">📕 Paper Book</option>
-                <option value="ebook" data-i18n="format.ebook">📱 E-book</option>
-                <option value="audiobook" data-i18n="format.audiobook">🎧 Audiobook</option>
-              </select>
-              <input type="hidden" id="book-audiobook" />
-            </div>
-
-            <div class="form-row">
-              <div class="form-group form-group-flex">
+            <div class="form-row form-row-compact">
+              <div class="form-group form-group-flex form-group-compact">
                 <label for="book-series" data-i18n="book.series">Series</label>
                 <select id="book-series">
                   <option value="" data-i18n="book.noSeries">No series</option>
                   <!-- Populated by JS -->
                 </select>
               </div>
-              <div class="form-group form-group-small">
-                <label for="book-series-order" data-i18n="book.bookNumber">Book #</label>
+              <div class="form-group form-group-small form-group-compact">
+                <label for="book-series-order" data-i18n="book.bookNumber">#</label>
                 <input type="number" id="book-series-order" min="1" placeholder="#" />
               </div>
               <button type="button" id="new-series-btn" class="btn btn-secondary btn-sm"
                 title="Create new series">+</button>
             </div>
-            <div class="form-group" id="total-pages-group">
-              <label for="book-total-pages" data-i18n="book.totalPages">Total Pages</label>
-              <input type="number" id="book-total-pages" min="1" placeholder="Number of pages"
-                data-i18n-placeholder="book.totalPagesPlaceholder" />
-            </div>
 
-            <div class="form-group hidden" id="total-duration-group">
-              <label data-i18n="book.totalDuration">Total Duration</label>
-              <div class="duration-input-group">
-                <input type="number" id="book-total-duration-hours" min="0" placeholder="Hours" class="duration-input"
-                  data-i18n-placeholder="book.hoursPlaceholder" />
-                <span class="duration-separator" data-i18n="time.h">h</span>
-                <input type="number" id="book-total-duration-minutes" min="0" max="59" placeholder="Min"
-                  class="duration-input" data-i18n-placeholder="book.minutesPlaceholder" />
-                <span class="duration-separator" data-i18n="time.m">m</span>
-              </div>
-            </div>
-
-            <div class="form-group" id="current-page-group">
-              <label for="book-current-page" data-i18n="book.currentPage">Current Page</label>
-              <input type="number" id="book-current-page" min="0" placeholder="Page you're on"
-                data-i18n-placeholder="book.currentPagePlaceholder" />
-            </div>
-
-            <div class="form-group hidden" id="current-duration-group">
-              <label data-i18n="book.currentPosition">Current Position</label>
-              <div class="duration-input-group">
-                <input type="number" id="book-current-duration-hours" min="0" placeholder="Hours" class="duration-input"
-                  data-i18n-placeholder="book.hoursPlaceholder" />
-                <span class="duration-separator" data-i18n="time.h">h</span>
-                <input type="number" id="book-current-duration-minutes" min="0" max="59" placeholder="Min"
-                  class="duration-input" data-i18n-placeholder="book.minutesPlaceholder" />
-                <span class="duration-separator" data-i18n="time.m">m</span>
-              </div>
-            </div>
-
-            <div class="form-group hidden" id="current-percentage-group">
-              <label for="book-current-percentage" data-i18n="book.currentPercentage">Current Percentage</label>
-              <input type="number" id="book-current-percentage" min="0" max="100" step="0.1" placeholder="% complete"
-                data-i18n-placeholder="book.percentPlaceholder" />
-            </div>
-
-            <div class="form-group">
-              <label for="book-start-date" data-i18n="book.startDate">Start Date</label>
-              <input type="date" id="book-start-date" />
-            </div>
-
-            <div class="form-group" id="finish-date-group">
-              <label data-i18n="book.finishDate">Finish Date</label>
-              <div class="finish-date-row">
-                <select id="book-finish-date-precision" class="filter-select finish-date-precision-select">
-                  <option value="day" data-i18n="book.exactDate">Exact date</option>
-                  <option value="month" data-i18n="book.monthYear">Month & year</option>
-                  <option value="year" data-i18n="book.yearOnly">Year only</option>
+            <div class="form-row-inline">
+              <div class="form-group form-group-flex form-group-compact">
+                <label for="book-status" data-i18n="book.statusLabel">Status *</label>
+                <select id="book-status" required>
+                  <option value="want-to-read" data-i18n="status.wantToRead">Want to Read</option>
+                  <option value="up-next" data-i18n="status.upNext">Up Next</option>
+                  <option value="reading" data-i18n="status.reading">Reading</option>
+                  <option value="read" data-i18n="status.read">Read</option>
                 </select>
-                <div id="finish-date-input-wrapper">
-                  <input type="date" id="book-finish-date" />
+              </div>
+              <div class="form-group form-group-flex form-group-compact">
+                <label for="book-format" data-i18n="book.formatLabel">Format</label>
+                <select id="book-format">
+                  <option value="paper" data-i18n="format.paper">📕 Paper</option>
+                  <option value="ebook" data-i18n="format.ebook">📱 E-book</option>
+                  <option value="audiobook" data-i18n="format.audiobook">🎧 Audio</option>
+                </select>
+                <input type="hidden" id="book-audiobook" />
+              </div>
+            </div>
+
+            <!-- Details Section (collapsible) -->
+            <details class="form-section" open>
+              <summary class="form-section-toggle" data-i18n="book.details">📋 Details</summary>
+              <div class="form-section-body">
+                <div class="form-group form-group-compact">
+                  <label for="book-cover" data-i18n="book.coverImage">Cover Image</label>
+                  <div class="cover-upload">
+                    <input type="file" id="book-cover" accept="image/*" />
+                    <div id="cover-preview" class="cover-preview hidden">
+                      <img id="cover-preview-img" src="" alt="Cover preview" />
+                      <button type="button" id="remove-cover-btn" class="btn-icon-small">×</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group form-group-compact">
+                  <label data-i18n="book.genres">Genres</label>
+                  <div class="genre-select-grid" id="genre-select-grid">
+                    <!-- Populated by JS with clickable genre chips -->
+                  </div>
+                </div>
+
+                <div class="form-group form-group-compact">
+                  <label for="book-topics" data-i18n="book.topics">Topics</label>
+                  <div class="tag-input-wrapper" id="topic-input-wrapper">
+                    <div class="tag-chips" id="topic-chips"></div>
+                    <input type="text" id="book-topics" placeholder="Type to add topic..." autocomplete="off"
+                      data-i18n-placeholder="book.topicsPlaceholder" />
+                    <div class="tag-suggestions hidden" id="topic-suggestions"></div>
+                  </div>
+                </div>
+
+                <div class="form-group form-group-compact" id="total-pages-group">
+                  <label for="book-total-pages" data-i18n="book.totalPages">Total Pages</label>
+                  <input type="number" id="book-total-pages" min="1" placeholder="Number of pages"
+                    data-i18n-placeholder="book.totalPagesPlaceholder" />
+                </div>
+
+                <div class="form-group form-group-compact hidden" id="total-duration-group">
+                  <label data-i18n="book.totalDuration">Total Duration</label>
+                  <div class="duration-input-group">
+                    <input type="number" id="book-total-duration-hours" min="0" placeholder="Hours"
+                      class="duration-input" data-i18n-placeholder="book.hoursPlaceholder" />
+                    <span class="duration-separator" data-i18n="time.h">h</span>
+                    <input type="number" id="book-total-duration-minutes" min="0" max="59" placeholder="Min"
+                      class="duration-input" data-i18n-placeholder="book.minutesPlaceholder" />
+                    <span class="duration-separator" data-i18n="time.m">m</span>
+                  </div>
+                </div>
+
+                <div class="form-group form-group-compact" id="current-page-group">
+                  <label for="book-current-page" data-i18n="book.currentPage">Current Page</label>
+                  <input type="number" id="book-current-page" min="0" placeholder="Page you're on"
+                    data-i18n-placeholder="book.currentPagePlaceholder" />
+                </div>
+
+                <div class="form-group form-group-compact hidden" id="current-duration-group">
+                  <label data-i18n="book.currentPosition">Current Position</label>
+                  <div class="duration-input-group">
+                    <input type="number" id="book-current-duration-hours" min="0" placeholder="Hours"
+                      class="duration-input" data-i18n-placeholder="book.hoursPlaceholder" />
+                    <span class="duration-separator" data-i18n="time.h">h</span>
+                    <input type="number" id="book-current-duration-minutes" min="0" max="59" placeholder="Min"
+                      class="duration-input" data-i18n-placeholder="book.minutesPlaceholder" />
+                    <span class="duration-separator" data-i18n="time.m">m</span>
+                  </div>
+                </div>
+
+                <div class="form-group form-group-compact hidden" id="current-percentage-group">
+                  <label for="book-current-percentage" data-i18n="book.currentPercentage">Current Percentage</label>
+                  <input type="number" id="book-current-percentage" min="0" max="100" step="0.1"
+                    placeholder="% complete" data-i18n-placeholder="book.percentPlaceholder" />
                 </div>
               </div>
-            </div>
+            </details>
 
-            <div class="form-group">
-              <label for="book-thoughts" data-i18n="book.thoughts">Thoughts / Key Takeaways</label>
-              <textarea id="book-thoughts" rows="4" placeholder="Your reflections, favorite quotes, key learnings..."
-                data-i18n-placeholder="book.thoughtsPlaceholder"></textarea>
-            </div>
+            <!-- Dates & Notes Section (collapsible, default collapsed) -->
+            <details class="form-section">
+              <summary class="form-section-toggle" data-i18n="book.datesNotes">📅 Dates & Notes</summary>
+              <div class="form-section-body">
+                <div class="form-group form-group-compact">
+                  <label for="book-start-date" data-i18n="book.startDate">Start Date</label>
+                  <input type="date" id="book-start-date" />
+                </div>
+
+                <div class="form-group form-group-compact" id="finish-date-group">
+                  <label data-i18n="book.finishDate">Finish Date</label>
+                  <div class="finish-date-row">
+                    <select id="book-finish-date-precision" class="filter-select finish-date-precision-select">
+                      <option value="day" data-i18n="book.exactDate">Exact date</option>
+                      <option value="month" data-i18n="book.monthYear">Month & year</option>
+                      <option value="year" data-i18n="book.yearOnly">Year only</option>
+                    </select>
+                    <div id="finish-date-input-wrapper">
+                      <input type="date" id="book-finish-date" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group form-group-compact">
+                  <label for="book-thoughts" data-i18n="book.thoughts">Thoughts / Key Takeaways</label>
+                  <textarea id="book-thoughts" rows="3"
+                    placeholder="Your reflections, favorite quotes, key learnings..."
+                    data-i18n-placeholder="book.thoughtsPlaceholder"></textarea>
+                </div>
+              </div>
+            </details>
 
             <div class="form-actions">
               <button type="button" id="delete-book-btn" class="btn btn-danger hidden"

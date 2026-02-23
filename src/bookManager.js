@@ -8,6 +8,7 @@ class BookManager {
     static currentGenreFilter = '';
     static currentTopicFilter = '';
     static currentAuthorFilter = '';
+    static currentSeriesFilter = null; // series_id or null
     static currentSort = 'newest';
     static availableGenres = [];
     static availableTopics = [];
@@ -154,6 +155,11 @@ class BookManager {
             );
         }
 
+        // Apply series filter
+        if (this.currentSeriesFilter) {
+            filtered = filtered.filter(book => book.series_id === this.currentSeriesFilter);
+        }
+
         // Apply search filter
         if (this.currentSearch) {
             const search = this.currentSearch.toLowerCase();
@@ -241,6 +247,10 @@ class BookManager {
 
     static setAuthorFilter(author) {
         this.currentAuthorFilter = author;
+    }
+
+    static setSeriesFilter(seriesId) {
+        this.currentSeriesFilter = seriesId;
     }
 
     static setSort(sort) {

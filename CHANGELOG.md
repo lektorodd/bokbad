@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0] - 2026-02-23
+
+### Added
+- **Compact Add Book Form** — reorganized form with collapsible sections (📋 Details, 📅 Dates & Notes). Essential fields always visible at top; Status + Format on one row. Significantly less scrolling.
+- **Author Auto-Fill from Series** — selecting a series in the add-book form auto-fills the author from existing books in that series.
+- **Series Filter Pill** — clicking a series chip in book detail now shows a dedicated 📖 filter pill (removable) instead of text search.
+
+### Fixed
+- **Series Filtering** — series chip now filters by `series_id` instead of text search, correctly showing all books in the series including newly added ones.
+- **Missing Series Name on New Books** — API now JOINs the series table when returning created/updated books, so `series_name` is populated immediately.
+- **Modal Scroll Position** — add/edit book modal now always scrolls to top when opened.
+
 ## [1.11.0] - 2026-02-22
 
 ### Added

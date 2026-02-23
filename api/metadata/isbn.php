@@ -32,13 +32,25 @@ $stmt->execute([$isbn]);
 $localBook = $stmt->fetch();
 
 if ($localBook) {
-    sendSuccess(['metadata' => [
-        'title'      => $localBook['name'],
-        'authors'    => json_decode($localBook['authors'], true) ?: [],
-        'coverImage' => $localBook['cover_image'],
-        'pageCount'  => $localBook['total_pages'] ? (int)$localBook['total_pages'] : null,
-        'source'     => 'Local Library',
-    ]]);
+    // Verify cover file actually exists on disk before returning it
+    $coverImage = $localBook['cover_image'];
+    if ($coverImage && strpos($coverImage, '/uploads/') === 0) {
+        $coverPath = __DIR__ . '/../../' . ltrim($coverImage, '/');
+        if (!file_exists($coverPath)) {
+            $coverImage = null; // File missing — will re-fetch from external API below
+        }
+    }
+
+    if ($coverImage) {
+        sendSuccess(['metadata' => [
+            'title'      => $localBook['name'],
+            'authors'    => json_decode($localBook['authors'], true) ?: [],
+            'coverImage' => $coverImage,
+            'pageCount'  => $localBook['total_pages'] ? (int)$localBook['total_pages'] : null,
+            'source'     => 'Local Library',
+        ]]);
+    }
+    // If cover is missing, fall through to external APIs to get a fresh one
 }
 
 // Try Google Books API first
