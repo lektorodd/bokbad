@@ -174,7 +174,8 @@ class BookManager {
                 const topicMatch = book.topics?.some(t =>
                     t.toLowerCase().includes(search)
                 );
-                return nameMatch || authorMatch || genreMatch || topicMatch;
+                const seriesMatch = book.series_name?.toLowerCase().includes(search);
+                return nameMatch || authorMatch || genreMatch || topicMatch || seriesMatch;
             });
         }
 
