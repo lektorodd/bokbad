@@ -109,8 +109,8 @@
   /* Indigo 500 */
   --color-primary-light: rgba(99, 102, 241, 0.2);
   /* Indigo translucent */
-  --color-secondary: #a78bfa;
-  /* Violet 400 */
+  --color-secondary: #c4b5fd;
+  /* Violet 300 – brighter for WCAG contrast */
 
   /* Semantic Colors - brighter for dark bg */
   --color-success: #34d399;
@@ -1056,7 +1056,7 @@ h6 {
 }
 
 .progress-ring-text {
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 700;
   fill: var(--color-text);
   font-family: var(--font-family-sans);
@@ -1341,18 +1341,18 @@ h6 {
 .carousel-track {
   display: flex;
   gap: var(--spacing-md);
-  padding: 0 calc(50% - 140px);
+  padding: 0 calc(50% - 120px);
 }
 
 .carousel-slide {
-  flex: 0 0 80%;
+  flex: 0 0 68%;
   scroll-snap-align: center;
   min-width: 0;
 }
 
 .carousel-slide .home-card {
   margin: 0 auto;
-  max-width: 280px;
+  max-width: 260px;
 }
 
 .carousel-slide .home-card-featured {
@@ -1427,7 +1427,7 @@ h6 {
   align-items: center;
   padding: var(--spacing-sm);
   gap: var(--spacing-sm);
-  min-height: auto;
+  min-height: 88px;
 }
 
 .books-container.compact-view .book-cover-wrap {
@@ -1999,34 +1999,46 @@ h6 {
 .stat-metrics {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 2px;
+  gap: var(--spacing-sm);
   padding: var(--spacing-sm) var(--spacing-md);
 }
 
 .stat-metric {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm);
-  border-radius: var(--radius-md);
+  gap: 4px;
+  padding: var(--spacing-md) var(--spacing-sm);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  text-align: center;
+  transition: all var(--transition-fast);
 }
 
 .stat-metric:hover {
-  background: var(--color-bg-secondary);
+  border-color: var(--color-primary-light);
+  box-shadow: var(--shadow-sm);
 }
 
 .stat-metric-icon {
-  font-size: 1.1rem;
-  width: 24px;
-  text-align: center;
+  font-size: 1.4rem;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-light);
+  border-radius: var(--radius-full);
   flex-shrink: 0;
 }
 
 .stat-metric-val {
   font-weight: 700;
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-lg);
   color: var(--color-text);
   min-width: 0;
+  line-height: 1.2;
 }
 
 .stat-metric-label {
@@ -3079,10 +3091,9 @@ h6 {
   position: fixed;
   bottom: calc(var(--nav-height) + var(--spacing-md));
   right: var(--spacing-md);
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--color-primary);
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
   color: white;
   border: none;
   box-shadow: var(--shadow-lg);
@@ -3090,12 +3101,28 @@ h6 {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: var(--spacing-xs);
+  padding: 0 var(--spacing-lg);
   transition: all 0.2s;
   z-index: 99;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  font-family: var(--font-family-sans);
+  white-space: nowrap;
 }
 
 .fab:active {
   transform: scale(0.95);
+}
+
+.fab-label {
+  display: inline;
+}
+
+.fab.fab-hidden {
+  transform: scale(0);
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ===== Progress Bar ===== */
@@ -3457,6 +3484,7 @@ h6 {
 .goal-banner {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--spacing-md);
   padding: var(--spacing-sm) var(--spacing-md);
   margin: var(--spacing-xs) var(--spacing-md);
@@ -3526,6 +3554,23 @@ h6 {
 .goal-banner-sub {
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
+}
+
+.goal-banner-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-border);
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.goal-banner-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  transition: width 1s ease;
+  min-width: 0;
 }
 
 /* ===== Immersive Reading Timer ===== */

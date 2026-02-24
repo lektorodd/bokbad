@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.0] - 2026-02-24
+
+### Changed
+- **Home Carousel** — narrower slides (68%) so adjacent book covers peek in, giving a better scrollable feel.
+- **Progress Ring** — enlarged from 36×36 to 56×56px with bigger text (11px) for much better readability.
+- **Stats Page** — metric tiles redesigned as a 2×3 card grid with icon circles and subtle borders instead of a flat icon list.
+- **Daily Chart** — fewer x-axis labels (10 max) with larger font for less cramping.
+- **FAB** — converted from plain circle to a labelled "Add Book" gradient pill, shown only on Home view.
+- **Library Nav Icon** — replaced single-book icon with "books on shelf" (3 vertical rectangles) to differentiate from Home.
+- **Dark Mode Contrast** — brightened accent purple to `#c4b5fd` (Violet 300) for better WCAG accessibility.
+
+### Added
+- **Goal Progress Bar** — linear progress bar below the reading goal widget alongside the existing ring.
+- **Empty State CTA** — friendly empty state on Home with "Add Book" button when no books are being read.
+- **Menu Divider** — additional divider in header dropdown before "Report Issue" for better grouping.
+
+### Fixed
+- **Library Card Alignment** — compact view cards now have consistent 88px min-height so badges and format icons align across rows.
+
 ## [1.12.3] - 2026-02-23
 
 ### Changed

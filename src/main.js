@@ -280,6 +280,12 @@ function switchView(viewName) {
       loadDashboard();
     }
   }
+
+  // Show FAB only on home view
+  const fab = document.getElementById('add-book-btn');
+  if (fab) {
+    fab.classList.toggle('fab-hidden', viewName !== 'home');
+  }
 }
 
 // ============ Toast Notification System ============
@@ -1273,7 +1279,13 @@ function renderHome() {
 
   // --- Reading Now Carousel ---
   if (readingBooks.length === 0) {
-    container.innerHTML = '<div class="carousel-slide"><div class="empty-state-inline"><span class="empty-state-inline-icon">📖</span>' + t('home.emptyReading') + '</div></div>';
+    container.innerHTML = `<div class="carousel-slide">
+      <div class="empty-state-inline" style="padding: var(--spacing-xl); border-style: dashed;">
+        <span class="empty-state-inline-icon" style="font-size: 2.5rem;">📚</span>
+        <p style="margin-bottom: var(--spacing-sm);">${t('home.emptyReading')}</p>
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('add-book-btn').click()" style="margin-top: var(--spacing-sm);">${t('library.addBook')}</button>
+      </div>
+    </div>`;
     dotsEl.innerHTML = '';
   } else {
     container.innerHTML = readingBooks.map((book, i) => {
@@ -1602,17 +1614,17 @@ function createHomeCard(book, isReading, isFeatured = false) {
   let progressRingHtml = '';
   if (isReading) {
     const pct = BookManager.getProgressPercent(book);
-    const radius = 15;
+    const radius = 22;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (pct / 100) * circumference;
     progressRingHtml = `
       <div class="progress-ring-wrapper">
-        <svg class="progress-ring" width="36" height="36" viewBox="0 0 36 36">
-          <circle class="progress-ring-bg" cx="18" cy="18" r="${radius}" fill="none" stroke-width="3" />
-          <circle class="progress-ring-fill" cx="18" cy="18" r="${radius}" fill="none" stroke-width="3"
+        <svg class="progress-ring" width="56" height="56" viewBox="0 0 56 56">
+          <circle class="progress-ring-bg" cx="28" cy="28" r="${radius}" fill="none" stroke-width="4" />
+          <circle class="progress-ring-fill" cx="28" cy="28" r="${radius}" fill="none" stroke-width="4"
             stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
-            stroke-linecap="round" transform="rotate(-90 18 18)" />
-          <text x="18" y="19" text-anchor="middle" dominant-baseline="middle" class="progress-ring-text">${pct}%</text>
+            stroke-linecap="round" transform="rotate(-90 28 28)" />
+          <text x="28" y="29" text-anchor="middle" dominant-baseline="middle" class="progress-ring-text">${pct}%</text>
         </svg>
       </div>
     `;
@@ -3026,9 +3038,9 @@ function renderDailyChart(days) {
           stacked: true,
           ticks: {
             maxRotation: 45,
-            font: { size: 9 },
+            font: { size: 10 },
             autoSkip: true,
-            maxTicksLimit: 15
+            maxTicksLimit: 10
           }
         },
         y: {
@@ -3076,6 +3088,7 @@ async function loadGoalWidget() {
     const targetEl = document.getElementById('goal-target');
     const labelEl = document.getElementById('goal-label');
     const progressEl = document.getElementById('goal-ring-progress');
+    const barFillEl = document.getElementById('goal-bar-fill');
 
     const booksRead = result.progress?.booksRead || 0;
     const targetBooks = result.goal?.targetBooks;
@@ -3090,10 +3103,12 @@ async function loadGoalWidget() {
       targetEl.textContent = t('home.booksOf', { read: booksRead, target: targetBooks });
       const pct = Math.min(booksRead / targetBooks, 1);
       progressEl.style.strokeDashoffset = circumference * (1 - pct);
+      if (barFillEl) barFillEl.style.width = `${Math.round(pct * 100)}%`;
       labelEl.textContent = pct >= 1 ? t('home.goalReached') : t('home.readingGoal', { year });
     } else {
       targetEl.textContent = t('home.goalTap');
       progressEl.style.strokeDashoffset = circumference;
+      if (barFillEl) barFillEl.style.width = '0%';
       labelEl.textContent = t('home.goalSet');
     }
     goalEl.classList.remove('hidden');
