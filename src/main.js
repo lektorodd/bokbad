@@ -137,6 +137,11 @@ function applyDarkMode(isDark) {
   if (btn) {
     const icon = btn.querySelector('.dropdown-icon');
     if (icon) icon.textContent = isDark ? '☀️' : '🌙';
+    const label = btn.querySelector('[data-i18n]');
+    if (label) {
+      label.setAttribute('data-i18n', isDark ? 'menu.lightMode' : 'menu.darkMode');
+      label.textContent = t(isDark ? 'menu.lightMode' : 'menu.darkMode');
+    }
   }
 }
 
@@ -147,6 +152,11 @@ function toggleDarkMode() {
   if (btn) {
     const icon = btn.querySelector('.dropdown-icon');
     if (icon) icon.textContent = isDark ? '☀️' : '🌙';
+    const label = btn.querySelector('[data-i18n]');
+    if (label) {
+      label.setAttribute('data-i18n', isDark ? 'menu.lightMode' : 'menu.darkMode');
+      label.textContent = t(isDark ? 'menu.lightMode' : 'menu.darkMode');
+    }
   }
 }
 

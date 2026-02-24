@@ -18,6 +18,7 @@
     },
     "menu": {
         "darkMode": "Dark Mode",
+        "lightMode": "Light Mode",
         "settings": "Settings",
         "reportIssue": "Report Issue",
         "logout": "Log Out"

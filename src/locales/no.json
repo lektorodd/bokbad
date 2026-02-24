@@ -18,6 +18,7 @@
     },
     "menu": {
         "darkMode": "Mørk modus",
+        "lightMode": "Lys modus",
         "settings": "Innstillinger",
         "reportIssue": "Rapporter feil",
         "logout": "Logg ut"

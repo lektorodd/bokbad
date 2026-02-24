@@ -4195,34 +4195,7 @@ h6 {
   background: transparent;
 }
 
-/* ===== FAB (Floating Action Button) ===== */
-.fab {
-  position: fixed;
-  bottom: calc(80px + env(safe-area-inset-bottom));
-  right: 16px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: none;
-  background: var(--color-primary);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-  cursor: pointer;
-  z-index: 100;
-  transition: all var(--transition-normal);
-}
-
-.fab:hover {
-  transform: scale(1.08);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-}
-
-.fab:active {
-  transform: scale(0.95);
-}
+/* FAB hover (supplements main .fab rule above) */
 
 /* ===== Log Reading Pill Button ===== */
 .log-reading-pill {
