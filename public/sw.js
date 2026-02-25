@@ -1,5 +1,5 @@
 // Bokbad Service Worker — Offline caching
-const CACHE_NAME = 'bokbad-v2';
+const CACHE_NAME = 'bokbad-v3';
 const STATIC_ASSETS = [
     '/',
     '/logo.svg',
@@ -35,21 +35,17 @@ self.addEventListener('fetch', (event) => {
     // Skip non-GET requests
     if (event.request.method !== 'GET') return;
 
-    // API calls: network-first, fall back to cache
+    // API calls: network-only (avoid caching user-private responses)
     if (url.pathname.startsWith('/api/')) {
         event.respondWith(
             fetch(event.request)
-                .then((response) => {
-                    // Cache successful GET API responses for offline
-                    if (response.ok) {
-                        const clone = response.clone();
-                        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+                .catch(() => new Response(
+                    JSON.stringify({ success: false, error: 'Offline' }),
+                    {
+                        status: 503,
+                        headers: { 'Content-Type': 'application/json; charset=utf-8' }
                     }
-                    return response;
-                })
-                .catch(() => {
-                    return caches.match(event.request);
-                })
+                ))
         );
         return;
     }

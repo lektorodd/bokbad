@@ -20,7 +20,7 @@
         "darkMode": "Mørk modus",
         "lightMode": "Lys modus",
         "settings": "Innstillinger",
-        "reportIssue": "Rapporter feil",
+        "reportIssue": "Meld feil",
         "logout": "Logg ut"
     },
     "home": {
@@ -206,9 +206,13 @@
         "dataBackup": "💾 Sikkerhetskopiering",
         "exportData": "📥 Eksporter data",
         "importData": "📤 Importer data",
-        "reportIssue": "🐛 Rapporter feil",
-        "reportIssueDesc": "Fant du en feil eller har et forslag? Gi oss beskjed på GitHub.",
-        "reportIssueBtn": "🐛 Rapporter feil på GitHub"
+        "reportIssue": "🐛 Meld feil",
+        "reportIssueDesc": "Fant du en feil eller har et forslag? Gi oss beskjed.",
+        "feedbackPlaceholder": "Beskriv feilen eller forslaget...",
+        "feedbackLabel": "Kva gjekk gale, eller kva kan bli betre?",
+        "sendFeedback": "🐛 Send tilbakemelding",
+        "feedbackSent": "Takk for tilbakemeldinga! 🐛",
+        "feedbackMinLength": "Meldinga må vera minst 3 teikn"
     },
     "admin": {
         "title": "Adminpanel",

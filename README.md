@@ -1,4 +1,4 @@
-# Bokbad - Book Tracking App ![Version](https://img.shields.io/badge/version-1.13.0-blue.svg)
+# Bokbad - Book Tracking App ![Version](https://img.shields.io/badge/version-1.13.2-blue.svg)
 
 A self-hosted, mobile-first web app for tracking your reading life. Keep a personal library of books you've read, are reading, or want to read — log reading sessions, set yearly goals, track streaks, and visualize your progress with charts and statistics. Supports paper books, e-books, and audiobooks with format-specific progress tracking, ISBN barcode scanning, and multi-language support (English & Norwegian).
 
@@ -144,6 +144,13 @@ npm run build
 - Visit your domain
 - Log in with default credentials
 - Change password immediately!
+
+## Security Notes
+
+- The debug endpoint (`/api/debug/check_db.php`) is disabled by default and only works when `BOKBAD_DEBUG_ENDPOINT=1` is explicitly set.
+- Migration scripts in `api/migrations/` are CLI-only and should not be executed via browser.
+- Service worker caching now excludes `/api/*` responses to avoid offline reuse of private authenticated data.
+- If you enable feedback, ensure your database is updated with the latest `database/schema.sql` so `platform_feedback` exists.
 
 ## API Endpoints
 

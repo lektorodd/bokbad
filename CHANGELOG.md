@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.2] - 2026-02-25
+
+### Fixed
+- **iPhone PWA Bottom Bar Spacing** — reduced excessive bottom navigation height/safe-area padding so the UI is less spacious and matches browser behavior better.
+- **"Ny bok" FAB Overlap** — adjusted floating add-book button positioning and layering so it no longer gets blocked by the bottom nav in iPhone PWA mode.
+- **Keyboard Regression Scope** — keyboard offset logic is now scoped to Settings/Feedback modals only, preventing the Add Book modal from being pushed out of view.
+- **Deploy Coverage** — deploy script now includes `sw.js`, manifest/logo, `api/books/lookup.php`, and debug/migration files so live deploys match local tested behavior.
+
+## [1.13.1] - 2026-02-25
+
+### Security
+- **Session Hardening** — login now rotates session IDs to reduce session fixation risk, and logout explicitly clears the session cookie.
+- **Maintenance Endpoint Lockdown** — `api/migrations/fix_audiobook_sessions.php` is now CLI-only; `api/debug/check_db.php` is disabled by default and requires `BOKBAD_DEBUG_ENDPOINT=1` plus admin auth.
+- **Cover Proxy Hardening** — `api/upload/proxy_cover.php` now validates target URLs/hosts more strictly, blocks private/reserved IP destinations, disables redirects, and streams downloads with a hard size cap.
+- **Service Worker Privacy** — API responses are no longer cached offline (`/api/*` now uses network-only behavior).
+- **XSS Mitigations** — hardened front-end rendering for toast messages, notes textarea content, and image URL handling.
+
+### Fixed
+- **Stats Date Validation** — `summary`, `dashboard_stats`, and `reading_pace` endpoints now validate `from`/`to` query params (`YYYY-MM-DD`) and return `400` on invalid ranges/formats instead of failing.
+- **Feedback Schema Gap** — `platform_feedback` table is now included in `database/schema.sql` for clean installs.
+
 ## [1.13.0] - 2026-02-24
 
 ### Changed

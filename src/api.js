@@ -160,6 +160,11 @@ class API {
     return this.post('/utils/backup.php', data);
   }
 
+  // Feedback
+  static async submitFeedback(message) {
+    return this.post('/feedback/index.php', { message });
+  }
+
   // Password change (self-service)
   static async changePassword(currentPassword, newPassword) {
     return this.post('/auth/password.php', {

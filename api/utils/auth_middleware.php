@@ -2,6 +2,19 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/response.php';
 
+function isHttpsRequest() {
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        return true;
+    }
+    if (!empty($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443) {
+        return true;
+    }
+    if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+        return strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https';
+    }
+    return false;
+}
+
 // Start session if not already started
 function ensureSession() {
     if (session_status() === PHP_SESSION_NONE) {
@@ -11,7 +24,7 @@ function ensureSession() {
         session_set_cookie_params([
             'lifetime' => $lifetime,
             'path' => '/',
-            'secure' => true,
+            'secure' => isHttpsRequest(),
             'httponly' => true,
             'samesite' => 'Lax'
         ]);
@@ -75,6 +88,8 @@ function requireAdmin() {
 // Login user
 function loginUser($userId, $username, $role = 'user', $mustChangePw = false) {
     ensureSession();
+    // Defend against session fixation by rotating session ID on auth.
+    session_regenerate_id(true);
     $_SESSION['user_id'] = $userId;
     $_SESSION['username'] = $username;
     $_SESSION['user_role'] = $role;
@@ -86,6 +101,15 @@ function loginUser($userId, $username, $role = 'user', $mustChangePw = false) {
 function logoutUser() {
     ensureSession();
     $_SESSION = [];
+    if (ini_get('session.use_cookies')) {
+        setcookie(session_name(), '', [
+            'expires' => time() - 42000,
+            'path' => '/',
+            'secure' => isHttpsRequest(),
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+    }
     session_destroy();
 }
 

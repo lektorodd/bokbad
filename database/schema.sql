@@ -95,6 +95,20 @@ CREATE TABLE IF NOT EXISTS bokbad_series (
 ALTER TABLE bokbad_books
     ADD FOREIGN KEY (series_id) REFERENCES bokbad_series(id) ON DELETE SET NULL;
 
+-- Feedback submissions
+CREATE TABLE IF NOT EXISTS platform_feedback (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NULL,
+    username VARCHAR(100) NOT NULL,
+    app_id VARCHAR(50) NOT NULL DEFAULT 'bokbad',
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_app_created (app_id, created_at),
+    INDEX idx_user (user_id),
+    CONSTRAINT fk_platform_feedback_user
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Insert test user (username: 'testesen', password: 'password')
 -- Password hash generated with: password_hash('password', PASSWORD_DEFAULT)
 INSERT INTO users (username, password_hash, role) VALUES 

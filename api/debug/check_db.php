@@ -4,7 +4,16 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../utils/auth_middleware.php';
 require_once __DIR__ . '/../utils/response.php';
 
-requireAuth();
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    sendError('Method not allowed', 405);
+}
+
+// Keep disabled by default in production.
+if (getenv('BOKBAD_DEBUG_ENDPOINT') !== '1') {
+    sendError('Not found', 404);
+}
+
+requireAdmin();
 
 $db = Database::getInstance()->getConnection();
 $userId = getCurrentUserId();

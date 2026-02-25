@@ -61,6 +61,16 @@ if (!$metadata) {
     $metadata = fetchFromOpenLibrary($isbn);
 }
 
+// If still not found, try Norwegian National Library
+if (!$metadata) {
+    $metadata = fetchFromNationalLibraryNorway($isbn);
+}
+
+// If we have metadata but no cover, try Open Library Covers as a last resort
+if ($metadata && empty($metadata['coverImage'])) {
+    $metadata['coverImage'] = fetchCoverFromOpenLibraryCovers($isbn);
+}
+
 if ($metadata) {
     sendSuccess(['metadata' => $metadata]);
 } else {
@@ -169,4 +179,91 @@ function fetchFromOpenLibrary($isbn) {
         'coverImage' => $coverImage,
         'source' => 'Open Library'
     ];
+}
+
+// Fetch from Norwegian National Library (nb.no)
+function fetchFromNationalLibraryNorway($isbn) {
+    $url = "https://api.nb.no/catalog/v1/items?q=isbn:{$isbn}&digitalAccessibleOnly=false";
+
+    $context = stream_context_create([
+        'http' => [
+            'timeout'    => 5,
+            'user_agent' => 'Bokbad/1.0'
+        ]
+    ]);
+
+    $response = @file_get_contents($url, false, $context);
+    if (!$response) return null;
+
+    $data = json_decode($response, true);
+    $items = $data['_embedded']['items'] ?? [];
+    if (empty($items)) return null;
+
+    $item = $items[0];
+    $meta = $item['metadata'] ?? [];
+
+    // Title
+    $title = $meta['titleInfos'][0]['title'] ?? null;
+
+    // Authors
+    $authors = [];
+    foreach ($meta['creators'] ?? [] as $creator) {
+        if (!empty($creator['name'])) {
+            $authors[] = $creator['name'];
+        }
+    }
+
+    // Page count
+    $pageCount = isset($meta['pageCount']) ? (int)$meta['pageCount'] : null;
+
+    // Cover image via IIIF manifest
+    $coverImage = null;
+    $iiifUrl = $item['_links']['iiifManifest']['href'] ?? null;
+    if ($iiifUrl) {
+        $iiifContext = stream_context_create([
+            'http' => ['timeout' => 3, 'user_agent' => 'Bokbad/1.0']
+        ]);
+        $iiifResponse = @file_get_contents($iiifUrl, false, $iiifContext);
+        if ($iiifResponse) {
+            $manifest = json_decode($iiifResponse, true);
+            $coverImage = $manifest['sequences'][0]['canvases'][0]['images'][0]['resource']['@id'] ?? null;
+        }
+    }
+
+    if (!$title && empty($authors)) return null;
+
+    return [
+        'title'       => $title,
+        'authors'     => $authors,
+        'description' => null,
+        'categories'  => [],
+        'coverImage'  => $coverImage,
+        'pageCount'   => $pageCount,
+        'source'      => 'Nasjonalbiblioteket',
+    ];
+}
+
+// Fetch cover image only from Open Library Covers API (last resort)
+function fetchCoverFromOpenLibraryCovers($isbn) {
+    $url = "https://covers.openlibrary.org/b/isbn/{$isbn}-L.jpg?default=false";
+
+    $context = stream_context_create([
+        'http' => [
+            'timeout'    => 3,
+            'method'     => 'HEAD',
+            'user_agent' => 'Bokbad/1.0'
+        ]
+    ]);
+
+    $headers = @get_headers($url, 0, $context);
+    if (!$headers) return null;
+
+    // get_headers returns the status line as the first element
+    $status = $headers[0] ?? '';
+    if (strpos($status, '200') !== false) {
+        // Strip the ?default=false so the URL is clean for the frontend
+        return "https://covers.openlibrary.org/b/isbn/{$isbn}-L.jpg";
+    }
+
+    return null;
 }

@@ -10,6 +10,35 @@ require_once __DIR__ . '/../utils/response.php';
 
 requireAuth();
 
+function isPublicIpAddress($ip) {
+    return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
+}
+
+function isAllowedRemoteHost($host) {
+    if (!$host) {
+        return false;
+    }
+
+    // Direct IP host
+    if (filter_var($host, FILTER_VALIDATE_IP)) {
+        return isPublicIpAddress($host);
+    }
+
+    // Resolve hostname and reject hosts that map to private/reserved ranges.
+    $ips = @gethostbynamel($host);
+    if (!$ips || !is_array($ips)) {
+        return false;
+    }
+
+    foreach ($ips as $ip) {
+        if (!isPublicIpAddress($ip)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     sendError('Method not allowed', 405);
 }
@@ -22,37 +51,93 @@ if (empty($data['url'])) {
 
 $remoteUrl = $data['url'];
 
-// Only allow http/https URLs
-if (!preg_match('#^https?://#i', $remoteUrl)) {
+// Validate URL and block local/private targets (SSRF hardening).
+$parts = parse_url($remoteUrl);
+if (!$parts || empty($parts['scheme']) || empty($parts['host'])) {
     sendError('Invalid URL', 400);
 }
 
-// Download remote image with timeout and size limit
+$scheme = strtolower($parts['scheme']);
+if (!in_array($scheme, ['http', 'https'], true)) {
+    sendError('Invalid URL', 400);
+}
+
+if (!isAllowedRemoteHost($parts['host'])) {
+    sendError('Invalid URL', 400);
+}
+
+// Download remote image with timeout and hard byte limit.
 $context = stream_context_create([
     'http' => [
         'timeout' => 10,
-        'max_redirects' => 3,
+        'max_redirects' => 0,
+        'follow_location' => 0,
+        'ignore_errors' => true,
         'user_agent' => 'Bokbad/1.0',
     ],
     'ssl' => [
         'verify_peer' => true,
+        'verify_peer_name' => true,
+        'allow_self_signed' => false
     ]
 ]);
 
-$imageData = @file_get_contents($remoteUrl, false, $context);
-
-if ($imageData === false) {
+$stream = @fopen($remoteUrl, 'rb', false, $context);
+if ($stream === false) {
     sendError('Failed to download image', 400);
 }
 
-// Enforce size limit (2MB)
-if (strlen($imageData) > MAX_UPLOAD_SIZE) {
-    sendError('Remote image too large', 400);
+$statusLine = $http_response_header[0] ?? '';
+if (!preg_match('/^HTTP\/\S+\s+2\d\d\b/', $statusLine)) {
+    fclose($stream);
+    sendError('Failed to download image', 400);
 }
 
-// Write to a temp file for processing
 $tmpFile = tempnam(sys_get_temp_dir(), 'bokbad_cover_');
-file_put_contents($tmpFile, $imageData);
+if ($tmpFile === false) {
+    fclose($stream);
+    sendError('Failed to process image', 500);
+}
+$tmpHandle = fopen($tmpFile, 'wb');
+if ($tmpHandle === false) {
+    fclose($stream);
+    unlink($tmpFile);
+    sendError('Failed to process image', 500);
+}
+
+$bytes = 0;
+while (!feof($stream)) {
+    $chunk = fread($stream, 8192);
+    if ($chunk === false) {
+        fclose($stream);
+        fclose($tmpHandle);
+        unlink($tmpFile);
+        sendError('Failed to download image', 400);
+    }
+
+    $bytes += strlen($chunk);
+    if ($bytes > MAX_UPLOAD_SIZE) {
+        fclose($stream);
+        fclose($tmpHandle);
+        unlink($tmpFile);
+        sendError('Remote image too large', 400);
+    }
+
+    if (fwrite($tmpHandle, $chunk) === false) {
+        fclose($stream);
+        fclose($tmpHandle);
+        unlink($tmpFile);
+        sendError('Failed to process image', 500);
+    }
+}
+
+fclose($stream);
+fclose($tmpHandle);
+
+if ($bytes === 0) {
+    unlink($tmpFile);
+    sendError('Failed to download image', 400);
+}
 
 // Validate MIME type
 $finfo = finfo_open(FILEINFO_MIME_TYPE);

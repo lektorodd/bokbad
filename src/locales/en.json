@@ -207,8 +207,12 @@
         "exportData": "📥 Export Data",
         "importData": "📤 Import Data",
         "reportIssue": "🐛 Report Issue",
-        "reportIssueDesc": "Found a bug or have a suggestion? Let us know on GitHub.",
-        "reportIssueBtn": "🐛 Report Issue on GitHub"
+        "reportIssueDesc": "Found a bug or have a suggestion? Let us know.",
+        "feedbackPlaceholder": "Describe the issue or suggestion...",
+        "feedbackLabel": "What went wrong, or what could be better?",
+        "sendFeedback": "🐛 Send Feedback",
+        "feedbackSent": "Thanks for your feedback! 🐛",
+        "feedbackMinLength": "Message must be at least 3 characters"
     },
     "admin": {
         "title": "Admin Panel",

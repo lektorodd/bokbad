@@ -10,6 +10,12 @@
  * Run once: php api/migrations/fix_audiobook_sessions.php
  */
 
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    echo "Forbidden\n";
+    exit(1);
+}
+
 require_once __DIR__ . '/../config/database.php';
 
 header('Content-Type: text/plain');

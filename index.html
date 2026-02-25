@@ -85,10 +85,9 @@
             <span class="dropdown-icon">🛡️</span> <span data-i18n="menu.adminPanel">Admin Panel</span>
           </a>
           <hr class="dropdown-divider" />
-          <a id="report-issue-menu-btn" class="dropdown-item" href="https://github.com/lektorodd/bokbad/issues"
-            target="_blank" rel="noopener">
+          <button id="report-issue-menu-btn" class="dropdown-item">
             <span class="dropdown-icon">🐛</span> <span data-i18n="menu.reportIssue">Report Issue</span>
-          </a>
+          </button>
           <hr class="dropdown-divider" />
           <button id="logout-btn" class="dropdown-item dropdown-item-danger">
             <span class="dropdown-icon">🚪</span> <span data-i18n="menu.logout">Log Out</span>
@@ -825,16 +824,53 @@
 
           <h3 data-i18n="settings.reportIssue">🐛 Report Issue</h3>
           <p class="settings-description" data-i18n="settings.reportIssueDesc">Found a bug or have a suggestion? Let us
-            know on GitHub.</p>
-          <a href="https://github.com/lektorodd/bokbad/issues/new" target="_blank" rel="noopener"
-            class="btn btn-secondary report-issue-btn" id="report-issue-btn" data-i18n="settings.reportIssueBtn">🐛
-            Report Issue on GitHub</a>
+            know.</p>
+          <div class="form-group">
+            <textarea id="settings-feedback-message" rows="3" maxlength="2000"
+              placeholder="Describe the issue or suggestion..."
+              data-i18n-placeholder="settings.feedbackPlaceholder"></textarea>
+            <span class="char-count" id="settings-feedback-char-count">0 / 2000</span>
+          </div>
+          <button type="button" id="settings-feedback-submit" class="btn btn-primary"
+            data-i18n="settings.sendFeedback">🐛 Send Feedback</button>
+          <div id="settings-feedback-error" class="error-message"></div>
         </div>
       </div>
     </div>
 
     <!-- Admin: Add/Edit User Modal -->
 
+
+    <!-- Feedback Modal -->
+    <div id="feedback-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 data-i18n="settings.reportIssue">🐛 Report Issue</h2>
+          <button id="feedback-close-btn" class="btn-icon" aria-label="Close">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <form id="feedback-form">
+          <div class="form-group">
+            <label for="feedback-message" data-i18n="settings.feedbackLabel">What went wrong, or what could be
+              better?</label>
+            <textarea id="feedback-message" rows="4" required minlength="3" maxlength="2000"
+              placeholder="Describe the issue or suggestion..."
+              data-i18n-placeholder="settings.feedbackPlaceholder"></textarea>
+            <span class="char-count" id="feedback-char-count">0 / 2000</span>
+          </div>
+          <div class="form-actions">
+            <button type="button" id="feedback-cancel-btn" class="btn btn-secondary"
+              data-i18n="book.cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary" data-i18n="settings.sendFeedback">🐛 Send</button>
+          </div>
+          <div id="feedback-form-error" class="error-message"></div>
+        </form>
+      </div>
+    </div>
 
     <!-- Toast Notification -->
     <div id="toast-container" class="toast-container"></div>

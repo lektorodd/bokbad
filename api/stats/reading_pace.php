@@ -12,9 +12,27 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 $db = Database::getInstance()->getConnection();
 $userId = getCurrentUserId();
 
+function parseIsoDate($value, $fieldName) {
+    if ($value === null || $value === '') {
+        return null;
+    }
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+        sendError("Invalid {$fieldName} date format. Use YYYY-MM-DD.", 400);
+    }
+    [$year, $month, $day] = array_map('intval', explode('-', $value));
+    if (!checkdate($month, $day, $year)) {
+        sendError("Invalid {$fieldName} date.", 400);
+    }
+    return $value;
+}
+
 // Optional date range filtering
-$from = $_GET['from'] ?? null;
-$to = $_GET['to'] ?? null;
+$from = parseIsoDate($_GET['from'] ?? null, 'from');
+$to = parseIsoDate($_GET['to'] ?? null, 'to');
+
+if ($from && $to && $from > $to) {
+    sendError('Invalid date range: from must be before to', 400);
+}
 
 $dateCondition = '';
 $dateParams = [];

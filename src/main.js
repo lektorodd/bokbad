@@ -299,11 +299,16 @@ function switchView(viewName) {
 }
 
 // ============ Toast Notification System ============
-function showToast(message, type = 'info', duration = 3000) {
+function showToast(message, type = 'info', duration = 3000, options = {}) {
+  const { allowHtml = false } = options;
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
-  toast.innerHTML = message;
+  if (allowHtml) {
+    toast.innerHTML = message;
+  } else {
+    toast.textContent = message;
+  }
   container.appendChild(toast);
 
   // Trigger animation
@@ -981,6 +986,78 @@ function setupEventListeners() {
     document.getElementById('reset-pw-form')?.addEventListener('submit', handleResetPassword);
   }
 
+  // Feedback modal (from header menu)
+  document.getElementById('report-issue-menu-btn').addEventListener('click', () => {
+    document.getElementById('header-menu-dropdown').classList.add('hidden');
+    const form = document.getElementById('feedback-form');
+    form.reset();
+    document.getElementById('feedback-form-error').textContent = '';
+    document.getElementById('feedback-char-count').textContent = '0 / 2000';
+    document.getElementById('feedback-modal').classList.remove('hidden');
+  });
+
+  document.getElementById('feedback-close-btn').addEventListener('click', () => {
+    document.getElementById('feedback-modal').classList.add('hidden');
+  });
+  document.getElementById('feedback-cancel-btn').addEventListener('click', () => {
+    document.getElementById('feedback-modal').classList.add('hidden');
+  });
+  document.getElementById('feedback-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'feedback-modal') document.getElementById('feedback-modal').classList.add('hidden');
+  });
+
+  document.getElementById('feedback-message').addEventListener('input', (e) => {
+    document.getElementById('feedback-char-count').textContent = `${e.target.value.length} / 2000`;
+  });
+
+  document.getElementById('feedback-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errEl = document.getElementById('feedback-form-error');
+    errEl.textContent = '';
+    const message = document.getElementById('feedback-message').value.trim();
+    if (message.length < 3) { errEl.textContent = t('settings.feedbackMinLength'); return; }
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const origText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = '...';
+
+    try {
+      const res = await API.submitFeedback(message);
+      if (!res.success) throw new Error(res.error || 'Failed');
+      document.getElementById('feedback-modal').classList.add('hidden');
+      showToast(t('settings.feedbackSent'), 'success');
+    } catch (err) { errEl.textContent = err.message; }
+    finally { submitBtn.disabled = false; submitBtn.textContent = origText; }
+  });
+
+  // Settings inline feedback form
+  document.getElementById('settings-feedback-message')?.addEventListener('input', (e) => {
+    document.getElementById('settings-feedback-char-count').textContent = `${e.target.value.length} / 2000`;
+  });
+
+  document.getElementById('settings-feedback-submit')?.addEventListener('click', async () => {
+    const errEl = document.getElementById('settings-feedback-error');
+    errEl.textContent = '';
+    const textarea = document.getElementById('settings-feedback-message');
+    const message = textarea.value.trim();
+    if (message.length < 3) { errEl.textContent = t('settings.feedbackMinLength'); return; }
+
+    const btn = document.getElementById('settings-feedback-submit');
+    const origText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    try {
+      const res = await API.submitFeedback(message);
+      if (!res.success) throw new Error(res.error || 'Failed');
+      textarea.value = '';
+      document.getElementById('settings-feedback-char-count').textContent = '0 / 2000';
+      showToast(t('settings.feedbackSent'), 'success');
+    } catch (err) { errEl.textContent = err.message; }
+    finally { btn.disabled = false; btn.textContent = origText; }
+  });
+
 }
 
 // ============ Tag Autocomplete ============
@@ -1335,8 +1412,9 @@ function renderHome() {
     upNextContainer.innerHTML = '<div class="empty-state-inline"><span class="empty-state-inline-icon">⏭️</span>No books queued up yet</div>';
   } else {
     upNextContainer.innerHTML = upNextBooks.map(book => {
-      const cover = book.cover_image
-        ? `<img class="up-next-thumb-img" src="${book.cover_image}" alt="" />`
+      const safeCover = sanitizeImageUrl(book.cover_image);
+      const cover = safeCover
+        ? `<img class="up-next-thumb-img" src="${escapeAttribute(safeCover)}" alt="" />`
         : `<div class="up-next-thumb-placeholder">📖</div>`;
       const title = escapeHtml(book.name);
       return `<div class="up-next-thumb" data-book-id="${book.id}">${cover}<div class="up-next-thumb-title">${title}</div></div>`;
@@ -1392,15 +1470,19 @@ function showBookPicker(readingBooks, otherBooks) {
   dropdown.style.right = '16px';
   dropdown.style.zIndex = '200';
 
-  const renderItem = (book, isOther = false) => `
-    <button class="book-picker-item${isOther ? ' book-picker-other' : ''}" data-book-id="${book.id}" data-needs-promote="${isOther}">
-      ${book.cover_image
-      ? `<img src="${book.cover_image}" alt="" class="book-picker-thumb" />`
-      : '<div class="book-picker-thumb-placeholder">📖</div>'
-    }
-      <span class="book-picker-name">${escapeHtml(book.name)}</span>
-    </button>
-  `;
+  const renderItem = (book, isOther = false) => {
+    const safeCover = sanitizeImageUrl(book.cover_image);
+    const coverHtml = safeCover
+      ? `<img src="${escapeAttribute(safeCover)}" alt="" class="book-picker-thumb" />`
+      : '<div class="book-picker-thumb-placeholder">📖</div>';
+
+    return `
+      <button class="book-picker-item${isOther ? ' book-picker-other' : ''}" data-book-id="${book.id}" data-needs-promote="${isOther}">
+        ${coverHtml}
+        <span class="book-picker-name">${escapeHtml(book.name)}</span>
+      </button>
+    `;
+  };
 
   let html = '';
   if (readingBooks.length > 0) {
@@ -1601,8 +1683,9 @@ async function renderCalendarMonth(year, month) {
 }
 
 function createHomeCard(book, isReading, isFeatured = false) {
-  const coverImg = book.cover_image
-    ? `<img src="${book.cover_image}" alt="${escapeHtml(book.name)}" class="home-card-cover" />`
+  const safeCover = sanitizeImageUrl(book.cover_image);
+  const coverImg = safeCover
+    ? `<img src="${escapeAttribute(safeCover)}" alt="${escapeHtml(book.name)}" class="home-card-cover" />`
     : `<div class="home-card-cover-placeholder">📖</div>`;
 
   const authorsHtml = book.authors && book.authors.length > 0
@@ -1700,8 +1783,9 @@ function createBookCard(book) {
     'read': t('status.read')
   }[book.status];
 
-  const coverImg = book.cover_image
-    ? `<img src="${book.cover_image}" alt="${escapeHtml(book.name)}" class="book-cover" />`
+  const safeCover = sanitizeImageUrl(book.cover_image);
+  const coverImg = safeCover
+    ? `<img src="${escapeAttribute(safeCover)}" alt="${escapeHtml(book.name)}" class="book-cover" />`
     : `<div class="book-cover-placeholder">📖</div>`;
 
   // Format overlay badge on cover
@@ -1809,8 +1893,9 @@ function openDetailModal(bookId) {
     'read': t('status.read')
   }[book.status];
 
-  const coverHtml = book.cover_image
-    ? `<img src="${book.cover_image}" alt="${escapeHtml(book.name)}" class="detail-cover" />`
+  const safeCover = sanitizeImageUrl(book.cover_image);
+  const coverHtml = safeCover
+    ? `<img src="${escapeAttribute(safeCover)}" alt="${escapeHtml(book.name)}" class="detail-cover" />`
     : `<div class="detail-cover-placeholder">📖</div>`;
 
   const authorsText = book.authors && book.authors.length > 0
@@ -1875,7 +1960,7 @@ function openDetailModal(bookId) {
         ${notesContent || '<span class="detail-notes-empty">Tap "Add" to write notes, highlights, or takeaways…</span>'}
       </div>
       <div class="detail-notes-editor hidden" id="detail-notes-editor">
-        <textarea id="detail-notes-textarea" class="detail-notes-textarea" placeholder="**Bold**, *italic*, # Heading, - List">${book.thoughts || ''}</textarea>
+        <textarea id="detail-notes-textarea" class="detail-notes-textarea" placeholder="**Bold**, *italic*, # Heading, - List"></textarea>
         <div class="detail-notes-actions">
           <button class="btn btn-secondary btn-sm detail-notes-cancel">Cancel</button>
           <button class="btn btn-primary btn-sm detail-notes-save" data-book-id="${bookId}">Save</button>
@@ -1953,6 +2038,10 @@ function openDetailModal(bookId) {
   const textarea = body.querySelector('#detail-notes-textarea');
   const cancelBtn = body.querySelector('.detail-notes-cancel');
   const saveBtn = body.querySelector('.detail-notes-save');
+
+  if (textarea) {
+    textarea.value = book.thoughts || '';
+  }
 
   if (editBtn) {
     editBtn.addEventListener('click', () => {
@@ -2124,14 +2213,14 @@ function openSessionModal(bookId) {
   document.getElementById('session-error').textContent = '';
 
   // Populate cover art
-  const coverUrl = book.cover_image || '';
+  const coverUrl = sanitizeImageUrl(book.cover_image);
   const bgEl = document.getElementById('session-bg-cover');
-  bgEl.style.backgroundImage = coverUrl ? `url(${coverUrl})` : 'none';
+  bgEl.style.backgroundImage = coverUrl ? `url("${coverUrl}")` : 'none';
 
   const coverImg = document.getElementById('session-book-cover-img');
   if (coverUrl) {
     coverImg.src = coverUrl;
-    coverImg.alt = escapeHtml(book.name);
+    coverImg.alt = book.name || '';
     coverImg.style.display = '';
   } else {
     coverImg.style.display = 'none';
@@ -2379,9 +2468,10 @@ function openBookModal(bookId = null) {
     renderTagChips('topic-chips', () => currentTopics, (v) => { currentTopics = v; });
     renderTagChips('author-chips', () => currentAuthors, (v) => { currentAuthors = v; });
 
-    if (book.cover_image) {
-      showCoverPreview(book.cover_image);
-      currentUploadedCoverUrl = book.cover_image;
+    const safeExistingCover = sanitizeImageUrl(book.cover_image);
+    if (safeExistingCover) {
+      showCoverPreview(safeExistingCover);
+      currentUploadedCoverUrl = safeExistingCover;
     }
     // Series
     populateSeriesDropdown(book.series_id);
@@ -2538,8 +2628,13 @@ async function handleCoverUpload(e) {
   try {
     const result = await API.uploadCover(file);
     if (result.success) {
-      currentUploadedCoverUrl = result.url;
-      showCoverPreview(result.url);
+      const safeCover = sanitizeImageUrl(result.url);
+      if (!safeCover) {
+        showToast(t('toast.uploadFailed'), 'error');
+        return;
+      }
+      currentUploadedCoverUrl = safeCover;
+      showCoverPreview(safeCover);
     } else {
       showToast(result.error || t('toast.uploadFailed'), 'error');
     }
@@ -2550,9 +2645,11 @@ async function handleCoverUpload(e) {
 }
 
 function showCoverPreview(url) {
+  const safeUrl = sanitizeImageUrl(url);
+  if (!safeUrl) return;
   const preview = document.getElementById('cover-preview');
   const img = document.getElementById('cover-preview-img');
-  img.src = url;
+  img.src = safeUrl;
   preview.classList.remove('hidden');
 }
 
@@ -2632,7 +2729,13 @@ async function handleTitleLookup() {
     const result = await API.lookupBook(name);
     if (result.success && result.book && result.book.coverImage) {
       pendingLookupResult = result.book;
-      document.getElementById('lookup-banner-img').src = result.book.coverImage;
+      const lookupCover = sanitizeImageUrl(result.book.coverImage);
+      if (!lookupCover) {
+        banner.classList.add('hidden');
+        pendingLookupResult = null;
+        return;
+      }
+      document.getElementById('lookup-banner-img').src = lookupCover;
       document.getElementById('lookup-banner-title').textContent = result.book.title;
       banner.classList.remove('hidden');
     } else {
@@ -2652,8 +2755,11 @@ function acceptLookupSuggestion() {
 
   // Set cover
   if (book.coverImage) {
-    currentUploadedCoverUrl = book.coverImage;
-    showCoverPreview(book.coverImage);
+    const safeCover = sanitizeImageUrl(book.coverImage);
+    if (safeCover) {
+      currentUploadedCoverUrl = safeCover;
+      showCoverPreview(safeCover);
+    }
   }
 
   // Auto-fill authors if empty
@@ -2737,13 +2843,19 @@ async function fetchBookMetadata() {
             showCoverPreview(proxyResult.url);
           } else {
             // Fallback to remote URL if proxy fails
-            currentUploadedCoverUrl = meta.coverImage;
-            showCoverPreview(meta.coverImage);
+            const safeCover = sanitizeImageUrl(meta.coverImage);
+            if (safeCover) {
+              currentUploadedCoverUrl = safeCover;
+              showCoverPreview(safeCover);
+            }
           }
         } catch {
           // Fallback to remote URL
-          currentUploadedCoverUrl = meta.coverImage;
-          showCoverPreview(meta.coverImage);
+          const safeCover = sanitizeImageUrl(meta.coverImage);
+          if (safeCover) {
+            currentUploadedCoverUrl = safeCover;
+            showCoverPreview(safeCover);
+          }
         }
       }
       showToast(t('toast.bookDetailsLoaded'), 'success');
@@ -3086,6 +3198,31 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+function escapeAttribute(value) {
+  return escapeHtml(value ?? '');
+}
+
+function sanitizeImageUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+
+  if (trimmed.startsWith('/')) {
+    return trimmed;
+  }
+
+  try {
+    const parsed = new URL(trimmed, window.location.origin);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return parsed.href;
+    }
+  } catch {
+    return '';
+  }
+
+  return '';
+}
+
 // ============ Phase 7: Reading Goals ============
 async function loadGoalWidget() {
   try {
@@ -3134,8 +3271,8 @@ function showBooksReadList() {
     showToast('No books finished this year yet');
     return;
   }
-  const list = books.map(b => `<div style="padding:2px 0">📖 ${escapeHtml(b.name)} <small style="opacity:.6">${b.finish_date}</small></div>`).join('');
-  showToast(`<strong>Books read in ${new Date().getFullYear()}:</strong>${list}`, 'info', 6000);
+  const list = books.map(b => `<div style="padding:2px 0">📖 ${escapeHtml(b.name)} <small style="opacity:.6">${escapeHtml(b.finish_date || '')}</small></div>`).join('');
+  showToast(`<strong>Books read in ${new Date().getFullYear()}:</strong>${list}`, 'info', 6000, { allowHtml: true });
 }
 
 function openSettings() {
@@ -3465,6 +3602,16 @@ async function importData(e) {
 
   // Reset file input
   e.target.value = '';
+}
+
+// Keep modals above the virtual keyboard on mobile
+if (window.visualViewport) {
+  const updateKeyboardHeight = () => {
+    const kbHeight = window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop;
+    document.documentElement.style.setProperty('--keyboard-height', Math.max(0, kbHeight) + 'px');
+  };
+  window.visualViewport.addEventListener('resize', updateKeyboardHeight);
+  window.visualViewport.addEventListener('scroll', updateKeyboardHeight);
 }
 
 // Initialize on load
