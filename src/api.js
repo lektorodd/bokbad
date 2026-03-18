@@ -33,7 +33,11 @@ class API {
    * @returns {Promise<Object>}
    */
   static async login(username, password, rememberMe = true) {
-    return this.post('/auth/login.php', { username, password, remember_me: rememberMe });
+    const result = await this.post('/auth/login.php', { username, password, remember_me: rememberMe });
+    if (result.success && result.csrf_token) {
+      this.setCsrfToken(result.csrf_token);
+    }
+    return result;
   }
 
   /** @returns {Promise<Object>} */

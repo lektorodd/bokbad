@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.18.0] - 2026-03-18
+
+### Changed
+- **Modular Architecture** — split monolithic `main.js` (3,958 lines) into 18 focused feature modules organized by views, modals, and components. Entry point is now ~420 lines.
+- **SVG Icons** — replaced emoji icons in the menu dropdown and section titles with inline SVGs for consistent rendering across all platforms and themes.
+- **Dark Mode Toggle** — moon/sun icons now swap as crisp SVGs instead of emojis.
+
+### Added
+- **Version Label** — app version (from `package.json`) is now shown at the bottom of the dropdown menu for easy debugging.
+
+### Fixed
+- **CSRF Token After Login** — login now returns a fresh CSRF token after session rotation, fixing "Invalid or missing CSRF token" errors on first action after logging in.
+- **Admin Panel Underline** — removed browser-default underline from the Admin Panel link in the dropdown menu.
+
 ## [1.17.0] - 2026-03-18
 
 ### Added

@@ -10,7 +10,8 @@ export default [
       ecmaVersion: 2022,
       sourceType: 'module',
       globals: {
-        ...globals.browser
+        ...globals.browser,
+        __APP_VERSION__: 'readonly'
       }
     },
     rules: {

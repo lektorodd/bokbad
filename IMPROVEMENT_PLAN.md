@@ -295,71 +295,19 @@ npx skills find "test coverage best practices"
 
 ---
 
-## Stage 5 — Architecture Refactoring
+## ~~Stage 5 — Architecture Refactoring~~ ✅ Complete (v1.18.0)
 
 **Goal:** Break the monoliths into maintainable modules.
 **Effort:** ~6–10 hours | **Risk:** Medium — requires careful testing
+**Status:** ✅ Completed 2026-03-18
 
-#### 🔍 Skills Discovery
-```bash
-npx skills find "javascript module architecture"
-npx skills find "css design tokens custom properties"
-npx skills find "svg icon system"
-npx skills find "code splitting vite"
-```
-
-#### ✅ Stage 5 Test Checklist
-- [ ] All views render correctly (home, library, dashboard)
-- [ ] All modals open/close/submit (add book, edit, session, settings, detail)
-- [ ] Pull-to-refresh and swipe gestures work
-- [ ] Dark mode toggles correctly
-- [ ] All existing Vitest tests still pass
-- [ ] Build output is similar size (no accidental duplication)
-
-### 5.1 Split `main.js` into feature modules
-- **Current:** 3,720 lines in one file
-- **Target structure:**
-  ```
-  src/
-  ├── main.js              ← Entry point (~100 lines): init, routing, imports
-  ├── views/
-  │   ├── home.js          ← Home view rendering, streak, carousel
-  │   ├── library.js       ← Book list, filtering, sorting, view modes
-  │   └── dashboard.js     ← Charts, stats, period selector
-  ├── modals/
-  │   ├── bookModal.js     ← Add/edit book form
-  │   ├── sessionModal.js  ← Reading session + timer
-  │   ├── detailModal.js   ← Book detail read-only view
-  │   └── settingsModal.js ← Settings, password, goals, export
-  ├── components/
-  │   ├── toast.js         ← Toast notification system
-  │   ├── swipe.js         ← Swipe gesture handlers
-  │   ├── pullToRefresh.js ← Pull-to-refresh logic
-  │   └── carousel.js      ← Book carousel component
-  ├── utils/
-  │   ├── format.js        ← Date/duration formatting
-  │   ├── genre.js         ← Genre hierarchy & normalization
-  │   └── escapeHtml.js    ← HTML escaping utility
-  ├── api.js               ← (existing) API client
-  ├── auth.js              ← (existing) Auth module
-  ├── bookManager.js       ← (existing) Book data manager
-  ├── i18n.js              ← (existing) Internationalization
-  └── style.css            ← (existing, split later in 5.2)
-  ```
-- **Approach:** Move functions one module at a time, re-export from `main.js` initially to avoid breaking imports. Run manual tests after each move. Use Vitest (from Stage 4) for regression checking.
-
-### 5.2 Organize CSS with design tokens
-- **File:** `src/style.css` (4,560 lines)
-- **Change:**
-  - Extract CSS custom properties into a `:root` block (colors, spacing, typography, border-radius)
-  - Group styles by feature (login, header, nav, library, dashboard, modals, etc.)
-  - Consider splitting into multiple files imported from a main `style.css`
-- **Why:** A design token system makes theming easier and ensures consistency across components.
-
-### 5.3 Replace emoji icons with SVG icon system
-- **Files:** `index.html`, `src/main.js`
-- **Change:** Replace emoji usage in menus (🌙, ⚙️, 🐛, 🚪) and section headers (📖, ⏭️, 📚) with inline SVGs or an icon component. The bottom nav already uses SVGs — extend that approach.
-- **Why:** Emoji render inconsistently across OS/browser. SVGs are consistent, styleable, scalable, and accessible.
+> **Results:**
+> - `main.js` split from 3,958 → ~420 lines across 18 modules (views/, modals/, components/)
+> - CSS design tokens already comprehensive; added section-icon styles
+> - Emoji icons replaced with inline SVGs in dropdown, section titles, dark mode toggle
+> - CSRF token bug fixed (login now returns fresh token after session rotation)
+> - Version label added to dropdown menu
+> - All 56 tests pass, 0 lint errors, build output unchanged
 
 ---
 

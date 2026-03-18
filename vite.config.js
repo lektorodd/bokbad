@@ -2,6 +2,8 @@ import { defineConfig } from 'vite'
 import { readFileSync, writeFileSync } from 'fs'
 import { resolve } from 'path'
 
+const pkg = JSON.parse(readFileSync('./package.json', 'utf8'))
+
 // Dev proxy target — point to production API for local testing.
 // This lets you log in with real credentials and see live data,
 // while running local frontend code. Safe: only your browser sees
@@ -32,6 +34,9 @@ function swCacheVersionPlugin() {
 }
 
 export default defineConfig({
+    define: {
+        __APP_VERSION__: JSON.stringify(pkg.version)
+    },
     server: {
         proxy: {
             '/api': {

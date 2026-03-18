@@ -82,12 +82,13 @@ loginUser($user['id'], $user['username'], $user['role'] ?? 'user', $user['must_c
 // Track last login
 $db->prepare("UPDATE users SET last_login_at = NOW() WHERE id = ?")->execute([$user['id']]);
 
-// Return success
+// Return success with CSRF token (session_regenerate_id in loginUser destroys the old one)
 sendSuccess([
     'user' => [
         'id' => $user['id'],
         'username' => $user['username'],
         'role' => $user['role'] ?? 'user',
         'must_change_password' => (bool)($user['must_change_password'] ?? false)
-    ]
+    ],
+    'csrf_token' => generateCsrfToken()
 ]);
