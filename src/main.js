@@ -20,23 +20,45 @@ let currentAuthors = [];
 // Predefined genre keys — labels come from i18n (genres.xxx)
 const GENRE_HIERARCHY = {
   fiction: [
-    'novel', 'thriller', 'mystery', 'scifi', 'fantasy', 'romance',
-    'horror', 'drama', 'classic', 'poetry', 'humor', 'ya', 'children', 'graphic'
+    'novel',
+    'thriller',
+    'mystery',
+    'scifi',
+    'fantasy',
+    'romance',
+    'horror',
+    'drama',
+    'classic',
+    'poetry',
+    'humor',
+    'ya',
+    'children',
+    'graphic'
   ],
   nonfiction: [
-    'biography', 'memoir', 'history', 'science', 'selfhelp', 'business',
-    'philosophy', 'health', 'politics', 'religion', 'travel', 'cooking', 'art', 'essays'
+    'biography',
+    'memoir',
+    'history',
+    'science',
+    'selfhelp',
+    'business',
+    'philosophy',
+    'health',
+    'politics',
+    'religion',
+    'travel',
+    'cooking',
+    'art',
+    'essays'
   ]
 };
 
-const FICTION_GENRES = new Set(GENRE_HIERARCHY.fiction);
-const NONFICTION_GENRES = new Set(GENRE_HIERARCHY.nonfiction);
 const PREDEFINED_GENRES = [...GENRE_HIERARCHY.fiction, ...GENRE_HIERARCHY.nonfiction];
 
 function getGenreLabel(key) {
   const label = t(`genres.${key}`);
   // If the key doesn't exist in translations, return the raw key capitalised
-  return (label && label !== `genres.${key}`) ? label : key;
+  return label && label !== `genres.${key}` ? label : key;
 }
 
 // Map a legacy free-text genre to a predefined key (case-insensitive)
@@ -45,31 +67,71 @@ function normalizeGenreKey(rawGenre) {
   if (PREDEFINED_GENRES.includes(lower)) return lower;
   // Try matching against English labels
   const enLabels = {
-    'fiction': 'fiction', 'non-fiction': 'nonfiction', 'nonfiction': 'nonfiction',
-    'biography': 'biography', 'novel': 'novel', 'thriller': 'thriller',
-    'mystery': 'mystery', 'sci-fi': 'scifi', 'scifi': 'scifi',
-    'fantasy': 'fantasy', 'history': 'history', 'science': 'science',
-    'self-help': 'selfhelp', 'selfhelp': 'selfhelp', 'business': 'business',
-    'philosophy': 'philosophy', 'poetry': 'poetry', "children's": 'children',
-    'children': 'children', 'young adult': 'ya', 'ya': 'ya',
-    'humor': 'humor', 'humour': 'humor', 'travel': 'travel',
-    'cooking': 'cooking', 'art': 'art', 'health': 'health',
-    'religion': 'religion', 'politics': 'politics', 'memoir': 'memoir',
-    'romance': 'romance', 'horror': 'horror', 'graphic novel': 'graphic',
-    'graphic': 'graphic', 'essays': 'essays', 'classic': 'classic',
-    'drama': 'drama'
+    fiction: 'fiction',
+    'non-fiction': 'nonfiction',
+    nonfiction: 'nonfiction',
+    biography: 'biography',
+    novel: 'novel',
+    thriller: 'thriller',
+    mystery: 'mystery',
+    'sci-fi': 'scifi',
+    scifi: 'scifi',
+    fantasy: 'fantasy',
+    history: 'history',
+    science: 'science',
+    'self-help': 'selfhelp',
+    selfhelp: 'selfhelp',
+    business: 'business',
+    philosophy: 'philosophy',
+    poetry: 'poetry',
+    "children's": 'children',
+    children: 'children',
+    'young adult': 'ya',
+    ya: 'ya',
+    humor: 'humor',
+    humour: 'humor',
+    travel: 'travel',
+    cooking: 'cooking',
+    art: 'art',
+    health: 'health',
+    religion: 'religion',
+    politics: 'politics',
+    memoir: 'memoir',
+    romance: 'romance',
+    horror: 'horror',
+    'graphic novel': 'graphic',
+    graphic: 'graphic',
+    essays: 'essays',
+    classic: 'classic',
+    drama: 'drama'
   };
   if (enLabels[lower]) return enLabels[lower];
   // Try matching against Norwegian labels
   const noLabels = {
-    'skjønnlitteratur': 'fiction', 'sakprosa': 'nonfiction', 'biografi': 'biography',
-    'roman': 'novel', 'krim': 'mystery', 'historie': 'history',
-    'vitenskap': 'science', 'selvhjelp': 'selfhelp', 'næringsliv': 'business',
-    'filosofi': 'philosophy', 'poesi': 'poetry', 'barnebøker': 'children',
-    'ungdom': 'ya', 'reise': 'travel', 'mat og drikke': 'cooking',
-    'kunst': 'art', 'helse': 'health', 'politikk': 'politics',
-    'memoar': 'memoir', 'romantikk': 'romance', 'skrekk': 'horror',
-    'tegneserie': 'graphic', 'essay': 'essays', 'klassiker': 'classic'
+    skjønnlitteratur: 'fiction',
+    sakprosa: 'nonfiction',
+    biografi: 'biography',
+    roman: 'novel',
+    krim: 'mystery',
+    historie: 'history',
+    vitenskap: 'science',
+    selvhjelp: 'selfhelp',
+    næringsliv: 'business',
+    filosofi: 'philosophy',
+    poesi: 'poetry',
+    barnebøker: 'children',
+    ungdom: 'ya',
+    reise: 'travel',
+    'mat og drikke': 'cooking',
+    kunst: 'art',
+    helse: 'health',
+    politikk: 'politics',
+    memoar: 'memoir',
+    romantikk: 'romance',
+    skrekk: 'horror',
+    tegneserie: 'graphic',
+    essay: 'essays',
+    klassiker: 'classic'
   };
   if (noLabels[lower]) return noLabels[lower];
   return lower; // fallback: keep as-is
@@ -77,8 +139,9 @@ function normalizeGenreKey(rawGenre) {
 
 function normalizeGenres(genres) {
   if (!genres || !Array.isArray(genres)) return [];
-  const normalized = genres.map(g => normalizeGenreKey(g))
-    .filter(g => g !== 'fiction' && g !== 'nonfiction'); // Strip legacy parent genres
+  const normalized = genres
+    .map((g) => normalizeGenreKey(g))
+    .filter((g) => g !== 'fiction' && g !== 'nonfiction'); // Strip legacy parent genres
   return [...new Set(normalized)]; // deduplicate
 }
 
@@ -90,27 +153,32 @@ function renderGenreSelectGrid(selectedGenres = []) {
   // Fiction section
   html += `<div class="genre-group-label">${escapeHtml(getGenreLabel('fiction'))}</div>`;
   html += `<div class="genre-group">`;
-  html += GENRE_HIERARCHY.fiction.map(key => {
-    const selected = selectedGenres.includes(key) ? ' selected' : '';
-    return `<button type="button" class="genre-chip-option${selected}" data-genre="${key}">${escapeHtml(getGenreLabel(key))}</button>`;
-  }).join('');
+  html += GENRE_HIERARCHY.fiction
+    .map((key) => {
+      const selected = selectedGenres.includes(key) ? ' selected' : '';
+      return `<button type="button" class="genre-chip-option${selected}" data-genre="${key}">${escapeHtml(getGenreLabel(key))}</button>`;
+    })
+    .join('');
   html += `</div>`;
 
   // Non-fiction section
   html += `<div class="genre-group-label">${escapeHtml(getGenreLabel('nonfiction'))}</div>`;
   html += `<div class="genre-group">`;
-  html += GENRE_HIERARCHY.nonfiction.map(key => {
-    const selected = selectedGenres.includes(key) ? ' selected' : '';
-    return `<button type="button" class="genre-chip-option${selected}" data-genre="${key}">${escapeHtml(getGenreLabel(key))}</button>`;
-  }).join('');
+  html += GENRE_HIERARCHY.nonfiction
+    .map((key) => {
+      const selected = selectedGenres.includes(key) ? ' selected' : '';
+      return `<button type="button" class="genre-chip-option${selected}" data-genre="${key}">${escapeHtml(getGenreLabel(key))}</button>`;
+    })
+    .join('');
   html += `</div>`;
 
   container.innerHTML = html;
-  container.querySelectorAll('.genre-chip-option').forEach(btn => {
+  container.querySelectorAll('.genre-chip-option').forEach((btn) => {
     btn.addEventListener('click', () => {
       btn.classList.toggle('selected');
-      currentGenres = Array.from(container.querySelectorAll('.genre-chip-option.selected'))
-        .map(el => el.dataset.genre);
+      currentGenres = Array.from(container.querySelectorAll('.genre-chip-option.selected')).map(
+        (el) => el.dataset.genre
+      );
     });
   });
 }
@@ -172,7 +240,11 @@ function formatDate(dateStr, precision = 'day') {
     if (precision === 'month') {
       return new Intl.DateTimeFormat(locale, { month: 'short', year: 'numeric' }).format(date);
     }
-    return new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
+    return new Intl.DateTimeFormat(locale, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(date);
   } catch {
     return dateStr;
   }
@@ -209,17 +281,23 @@ async function init() {
       // Re-render active view
       const activeView = document.querySelector('.view.active');
       if (activeView?.id === 'home-view') renderHome();
-      else if (activeView?.id === 'library-view') { updateFilterTabCounts(); renderBooks(); }
-      else if (activeView?.id === 'dashboard-view') loadDashboard();
+      else if (activeView?.id === 'library-view') {
+        updateFilterTabCounts();
+        renderBooks();
+      } else if (activeView?.id === 'dashboard-view') loadDashboard();
     });
   }
 
   // Listen for session expiration (401 from any API call)
-  window.addEventListener('session-expired', () => {
-    showToast(t('toast.sessionExpired'), 'error');
-    showLogin();
-    setupLoginListeners();
-  }, { once: true });
+  window.addEventListener(
+    'session-expired',
+    () => {
+      showToast(t('toast.sessionExpired'), 'error');
+      showLogin();
+      setupLoginListeners();
+    },
+    { once: true }
+  );
 
   const isAuthenticated = await Auth.checkAuthentication();
 
@@ -277,7 +355,7 @@ async function fetchAnnouncements() {
     if (!data.announcements || !data.announcements.length) return;
 
     const dismissed = JSON.parse(localStorage.getItem('dismissed_announcements') || '[]');
-    const active = data.announcements.filter(a => !dismissed.includes(a.id));
+    const active = data.announcements.filter((a) => !dismissed.includes(a.id));
     if (!active.length) return;
 
     const old = document.querySelector('.announcement-banner');
@@ -290,7 +368,10 @@ async function fetchAnnouncements() {
     const md = (s) => {
       let t = escapeHtml(s || '');
       t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" style="color:inherit;text-decoration:underline;">$1</a>');
+      t = t.replace(
+        /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+        '<a href="$2" target="_blank" style="color:inherit;text-decoration:underline;">$1</a>'
+      );
       return t;
     };
     banner.innerHTML = `
@@ -308,7 +389,7 @@ async function fetchAnnouncements() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ announcement_id: a.id, username, app: 'bokbad' })
-        }).catch(() => { });
+        }).catch(() => {});
       }
     });
 
@@ -319,17 +400,19 @@ async function fetchAnnouncements() {
       const app = document.getElementById('app');
       app.insertBefore(banner, app.firstChild);
     }
-  } catch (e) { /* silent */ }
+  } catch (_e) {
+    /* silent */
+  }
 }
 
 function switchView(viewName) {
   // Update nav
-  document.querySelectorAll('.nav-item').forEach(item => {
+  document.querySelectorAll('.nav-item').forEach((item) => {
     item.classList.toggle('active', item.dataset.view === viewName);
   });
 
   // Update views
-  document.querySelectorAll('.app-main > .view').forEach(view => {
+  document.querySelectorAll('.app-main > .view').forEach((view) => {
     view.classList.remove('active');
   });
 
@@ -451,8 +534,6 @@ function formatDuration(totalMinutes) {
   return h > 0 ? `${h}${t('time.h')} ${m}${t('time.m')}` : `${m}${t('time.m')}`;
 }
 
-
-
 function setupLoginListeners() {
   const form = document.getElementById('login-form');
   form.addEventListener('submit', async (e) => {
@@ -506,63 +587,74 @@ function setupPullToRefresh() {
     if (!pullIndicator) {
       pullIndicator = document.createElement('div');
       pullIndicator.className = 'pull-indicator';
-      pullIndicator.innerHTML = '<span class="pull-spinner">↻</span><span class="pull-text">' + t('pull.pullToRefresh') + '</span>';
+      pullIndicator.innerHTML =
+        '<span class="pull-spinner">↻</span><span class="pull-text">' +
+        t('pull.pullToRefresh') +
+        '</span>';
       main.prepend(pullIndicator);
     }
     return pullIndicator;
   }
 
-  main.addEventListener('touchstart', (e) => {
-    // Only allow pull if already resting at top (not scrolling up to top)
-    atTop = main.scrollTop <= 0;
-    cancelled = false;
-    if (atTop) {
-      startY = e.touches[0].clientY;
-      startX = e.touches[0].clientX;
-      pulling = false;
-    }
-  }, { passive: true });
-
-  main.addEventListener('touchmove', (e) => {
-    if (!atTop || cancelled) return;
-    const dy = e.touches[0].clientY - startY;
-    const dx = e.touches[0].clientX - startX;
-
-    // Cancel pull if horizontal movement dominates (e.g. carousel, filter scroll)
-    if (!pulling && Math.abs(dx) > 30) {
-      cancelled = true;
-      pulling = false;
-      if (pullIndicator) {
-        pullIndicator.style.height = '0px';
-        pullIndicator.style.opacity = '0';
+  main.addEventListener(
+    'touchstart',
+    (e) => {
+      // Only allow pull if already resting at top (not scrolling up to top)
+      atTop = main.scrollTop <= 0;
+      cancelled = false;
+      if (atTop) {
+        startY = e.touches[0].clientY;
+        startX = e.touches[0].clientX;
+        pulling = false;
       }
-      return;
-    }
+    },
+    { passive: true }
+  );
 
-    // Only engage pull once the user has moved >= 10px downward (intent guard)
-    if (!pulling && dy > 10 && main.scrollTop <= 0) {
-      pulling = true;
-    }
+  main.addEventListener(
+    'touchmove',
+    (e) => {
+      if (!atTop || cancelled) return;
+      const dy = e.touches[0].clientY - startY;
+      const dx = e.touches[0].clientX - startX;
 
-    if (!pulling) return;
-    if (dy > 0 && main.scrollTop <= 0) {
-      const indicator = getOrCreateIndicator();
-      const progress = Math.min(dy / PULL_THRESHOLD, 1);
-      indicator.style.height = `${Math.min(dy * 0.4, 70)}px`;
-      indicator.style.opacity = progress;
-      indicator.querySelector('.pull-spinner').style.transform = `rotate(${dy * 2}deg)`;
-      if (dy > PULL_THRESHOLD) {
-        indicator.querySelector('.pull-text').textContent = t('pull.releaseToRefresh');
-        indicator.classList.add('pull-ready');
+      // Cancel pull if horizontal movement dominates (e.g. carousel, filter scroll)
+      if (!pulling && Math.abs(dx) > 30) {
+        cancelled = true;
+        pulling = false;
+        if (pullIndicator) {
+          pullIndicator.style.height = '0px';
+          pullIndicator.style.opacity = '0';
+        }
+        return;
+      }
+
+      // Only engage pull once the user has moved >= 10px downward (intent guard)
+      if (!pulling && dy > 10 && main.scrollTop <= 0) {
+        pulling = true;
+      }
+
+      if (!pulling) return;
+      if (dy > 0 && main.scrollTop <= 0) {
+        const indicator = getOrCreateIndicator();
+        const progress = Math.min(dy / PULL_THRESHOLD, 1);
+        indicator.style.height = `${Math.min(dy * 0.4, 70)}px`;
+        indicator.style.opacity = progress;
+        indicator.querySelector('.pull-spinner').style.transform = `rotate(${dy * 2}deg)`;
+        if (dy > PULL_THRESHOLD) {
+          indicator.querySelector('.pull-text').textContent = t('pull.releaseToRefresh');
+          indicator.classList.add('pull-ready');
+        } else {
+          indicator.querySelector('.pull-text').textContent = t('pull.pullToRefresh');
+          indicator.classList.remove('pull-ready');
+        }
       } else {
-        indicator.querySelector('.pull-text').textContent = t('pull.pullToRefresh');
-        indicator.classList.remove('pull-ready');
+        // User scrolled back up – cancel
+        pulling = false;
       }
-    } else {
-      // User scrolled back up – cancel
-      pulling = false;
-    }
-  }, { passive: true });
+    },
+    { passive: true }
+  );
 
   main.addEventListener('touchend', async () => {
     if (!pulling || cancelled) {
@@ -572,7 +664,10 @@ function setupPullToRefresh() {
       if (pullIndicator) {
         pullIndicator.style.height = '0px';
         pullIndicator.style.opacity = '0';
-        setTimeout(() => { pullIndicator?.remove(); pullIndicator = null; }, 200);
+        setTimeout(() => {
+          pullIndicator?.remove();
+          pullIndicator = null;
+        }, 200);
       }
       return;
     }
@@ -593,7 +688,7 @@ function setupPullToRefresh() {
           indicator.querySelector('.pull-text').textContent = t('pull.updated');
           indicator.querySelector('.pull-spinner').classList.remove('spinning');
         }
-      } catch (err) {
+      } catch (_err) {
         if (indicator) {
           indicator.querySelector('.pull-text').textContent = t('pull.refreshFailed');
         }
@@ -603,7 +698,10 @@ function setupPullToRefresh() {
       setTimeout(() => {
         indicator.style.height = '0px';
         indicator.style.opacity = '0';
-        setTimeout(() => { indicator.remove(); pullIndicator = null; }, 300);
+        setTimeout(() => {
+          indicator.remove();
+          pullIndicator = null;
+        }, 300);
       }, 600);
     }
   });
@@ -619,55 +717,63 @@ function attachSwipeHandlers(container) {
   let swiping = false;
   const THRESHOLD = 70;
 
-  container.addEventListener('touchstart', (e) => {
-    if (isProcessingSwipe) return;
-    // Skip swipe in grid view — only taps
-    if (container.classList.contains('grid-view')) return;
-    const card = e.target.closest('.book-card');
-    if (!card) return;
+  container.addEventListener(
+    'touchstart',
+    (e) => {
+      if (isProcessingSwipe) return;
+      // Skip swipe in grid view — only taps
+      if (container.classList.contains('grid-view')) return;
+      const card = e.target.closest('.book-card');
+      if (!card) return;
 
-    // Reset any previously swiped cards
-    container.querySelectorAll('.book-card.swiped-left, .book-card.swiped-right').forEach(c => {
-      if (c !== card) resetSwipe(c);
-    });
+      // Reset any previously swiped cards
+      container.querySelectorAll('.book-card.swiped-left, .book-card.swiped-right').forEach((c) => {
+        if (c !== card) resetSwipe(c);
+      });
 
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    currentCard = card;
-    swiping = false;
-  }, { passive: true });
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      currentCard = card;
+      swiping = false;
+    },
+    { passive: true }
+  );
 
-  container.addEventListener('touchmove', (e) => {
-    if (!currentCard || isProcessingSwipe) return;
-    const dx = e.touches[0].clientX - startX;
-    const dy = e.touches[0].clientY - startY;
+  container.addEventListener(
+    'touchmove',
+    (e) => {
+      if (!currentCard || isProcessingSwipe) return;
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
 
-    // If vertical scroll dominates, cancel swipe
-    if (!swiping && Math.abs(dy) > Math.abs(dx)) {
-      currentCard = null;
-      return;
-    }
-
-    if (Math.abs(dx) > 10) swiping = true;
-
-    if (swiping) {
-      e.preventDefault();
-      const cardInner = currentCard.querySelector('.book-card-inner') || currentCard;
-      const clampedDx = Math.max(-120, Math.min(120, dx));
-      cardInner.style.transform = `translateX(${clampedDx}px)`;
-      cardInner.style.transition = 'none';
-
-      // Show/hide action backgrounds
-      let leftAction = currentCard.querySelector('.swipe-action-left');
-      let rightAction = currentCard.querySelector('.swipe-action-right');
-      if (dx < 0 && leftAction) {
-        leftAction.style.opacity = Math.min(1, Math.abs(dx) / THRESHOLD);
+      // If vertical scroll dominates, cancel swipe
+      if (!swiping && Math.abs(dy) > Math.abs(dx)) {
+        currentCard = null;
+        return;
       }
-      if (dx > 0 && rightAction) {
-        rightAction.style.opacity = Math.min(1, dx / THRESHOLD);
+
+      if (Math.abs(dx) > 10) swiping = true;
+
+      if (swiping) {
+        e.preventDefault();
+        const cardInner = currentCard.querySelector('.book-card-inner') || currentCard;
+        const clampedDx = Math.max(-120, Math.min(120, dx));
+        cardInner.style.transform = `translateX(${clampedDx}px)`;
+        cardInner.style.transition = 'none';
+
+        // Show/hide action backgrounds
+        let leftAction = currentCard.querySelector('.swipe-action-left');
+        let rightAction = currentCard.querySelector('.swipe-action-right');
+        if (dx < 0 && leftAction) {
+          leftAction.style.opacity = Math.min(1, Math.abs(dx) / THRESHOLD);
+        }
+        if (dx > 0 && rightAction) {
+          rightAction.style.opacity = Math.min(1, dx / THRESHOLD);
+        }
       }
-    }
-  }, { passive: false });
+    },
+    { passive: false }
+  );
 
   container.addEventListener('touchend', async () => {
     if (!currentCard || !swiping || isProcessingSwipe) {
@@ -694,7 +800,12 @@ function attachSwipeHandlers(container) {
         const statusFlow = ['want-to-read', 'up-next', 'reading', 'read'];
         const currentIndex = statusFlow.indexOf(book.status);
         const nextStatus = statusFlow[(currentIndex + 1) % statusFlow.length];
-        const nextLabel = { 'want-to-read': t('status.wantToRead'), 'up-next': t('status.upNext'), 'reading': t('status.reading'), 'read': t('status.read') }[nextStatus];
+        const nextLabel = {
+          'want-to-read': t('status.wantToRead'),
+          'up-next': t('status.upNext'),
+          reading: t('status.reading'),
+          read: t('status.read')
+        }[nextStatus];
         await BookManager.updateBook({ id: bookId, status: nextStatus });
         showToast(t('toast.statusChanged', { status: nextLabel }), 'success');
         renderBooks();
@@ -731,7 +842,7 @@ function setupEventListeners() {
   });
 
   // Bottom navigation
-  document.querySelectorAll('.nav-item').forEach(item => {
+  document.querySelectorAll('.nav-item').forEach((item) => {
     item.addEventListener('click', () => {
       switchView(item.dataset.view);
     });
@@ -763,14 +874,21 @@ function setupEventListeners() {
   document.getElementById('calendar-close-btn').addEventListener('click', () => {
     const modal = document.getElementById('calendar-modal');
     modal.classList.add('modal-closing');
-    modal.addEventListener('animationend', () => {
-      modal.classList.add('hidden');
-      modal.classList.remove('modal-closing');
-    }, { once: true });
+    modal.addEventListener(
+      'animationend',
+      () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('modal-closing');
+      },
+      { once: true }
+    );
   });
 
   // Streak stat in dashboard → open calendar
-  document.getElementById('stat-streak')?.closest('.stat-metric')?.addEventListener('click', () => openActivityCalendar());
+  document
+    .getElementById('stat-streak')
+    ?.closest('.stat-metric')
+    ?.addEventListener('click', () => openActivityCalendar());
 
   // Detail modal: Log Reading
   document.getElementById('detail-log-btn').addEventListener('click', () => {
@@ -803,19 +921,22 @@ function setupEventListeners() {
 
   // Search
   const searchInput = document.getElementById('search-input');
-  searchInput.addEventListener('input', debounce((e) => {
-    BookManager.setSearch(e.target.value);
-    renderBooks();
-    renderActiveFilterPills();
-  }, 300));
+  searchInput.addEventListener(
+    'input',
+    debounce((e) => {
+      BookManager.setSearch(e.target.value);
+      renderBooks();
+      renderActiveFilterPills();
+    }, 300)
+  );
 
   // Filter tabs (multi-select)
-  document.querySelectorAll('.filter-tab').forEach(tab => {
+  document.querySelectorAll('.filter-tab').forEach((tab) => {
     tab.addEventListener('click', () => {
       const status = tab.dataset.status;
       if (status === 'all') {
         // "All" deselects everything
-        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.filter-tab').forEach((t) => t.classList.remove('active'));
         tab.classList.add('active');
         BookManager.setFilter([]);
       } else {
@@ -824,7 +945,7 @@ function setupEventListeners() {
         tab.classList.toggle('active');
         // Build array of active statuses
         const activeStatuses = [];
-        document.querySelectorAll('.filter-tab.active').forEach(t => {
+        document.querySelectorAll('.filter-tab.active').forEach((t) => {
           if (t.dataset.status !== 'all') activeStatuses.push(t.dataset.status);
         });
         // If nothing selected, re-activate "All"
@@ -896,7 +1017,9 @@ function setupEventListeners() {
   document.getElementById('settings-close-btn').addEventListener('click', closeSettings);
   document.getElementById('save-goal-btn').addEventListener('click', saveGoal);
   document.getElementById('export-data-btn').addEventListener('click', exportData);
-  document.getElementById('import-data-btn').addEventListener('click', () => document.getElementById('import-data-file').click());
+  document
+    .getElementById('import-data-btn')
+    .addEventListener('click', () => document.getElementById('import-data-file').click());
   document.getElementById('import-data-file').addEventListener('change', importData);
 
   // Immersive timer controls
@@ -921,10 +1044,18 @@ function setupEventListeners() {
     const seriesId = parseInt(e.target.value);
     if (!seriesId || currentAuthors.length > 0) return;
     // Find an existing book in this series to get the author
-    const seriesBook = BookManager.books.find(b => b.series_id === seriesId && b.authors && b.authors.length > 0);
+    const seriesBook = BookManager.books.find(
+      (b) => b.series_id === seriesId && b.authors && b.authors.length > 0
+    );
     if (seriesBook) {
       currentAuthors = [...seriesBook.authors];
-      renderTagChips('author-chips', () => currentAuthors, (v) => { currentAuthors = v; });
+      renderTagChips(
+        'author-chips',
+        () => currentAuthors,
+        (v) => {
+          currentAuthors = v;
+        }
+      );
     }
   });
 
@@ -933,7 +1064,10 @@ function setupEventListeners() {
   const goalWidget = document.getElementById('goal-widget');
   let goalPressTimer = null;
   goalWidget.addEventListener('pointerdown', () => {
-    goalPressTimer = setTimeout(() => { goalPressTimer = 'long'; openSettings(); }, 500);
+    goalPressTimer = setTimeout(() => {
+      goalPressTimer = 'long';
+      openSettings();
+    }, 500);
   });
   goalWidget.addEventListener('pointerup', () => {
     if (goalPressTimer && goalPressTimer !== 'long') {
@@ -961,8 +1095,8 @@ function setupEventListeners() {
   // Log Reading pill on home
   document.getElementById('home-log-reading-btn').addEventListener('click', () => {
     const reading = BookManager.getBooksByStatus('reading');
-    const otherBooks = BookManager.books.filter(b =>
-      b.status !== 'read' && b.status !== 'reading'
+    const otherBooks = BookManager.books.filter(
+      (b) => b.status !== 'read' && b.status !== 'reading'
     );
     if (reading.length === 1 && otherBooks.length === 0) {
       openSessionModal(reading[0].id);
@@ -994,9 +1128,9 @@ function setupEventListeners() {
   });
 
   // Period selector
-  document.querySelectorAll('.period-btn').forEach(btn => {
+  document.querySelectorAll('.period-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.period-btn').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       currentPeriod = btn.dataset.period;
       loadDashboard();
@@ -1010,8 +1144,26 @@ function setupEventListeners() {
 
   // Tag autocomplete
   // Genre grid is rendered in openBookModal, not via autocomplete
-  setupTagAutocomplete('book-topics', 'topic-suggestions', 'topic-chips', () => currentTopics, (val) => { currentTopics = val; }, () => BookManager.availableTopics);
-  setupTagAutocomplete('book-authors', 'author-suggestions', 'author-chips', () => currentAuthors, (val) => { currentAuthors = val; }, () => BookManager.availableAuthors);
+  setupTagAutocomplete(
+    'book-topics',
+    'topic-suggestions',
+    'topic-chips',
+    () => currentTopics,
+    (val) => {
+      currentTopics = val;
+    },
+    () => BookManager.availableTopics
+  );
+  setupTagAutocomplete(
+    'book-authors',
+    'author-suggestions',
+    'author-chips',
+    () => currentAuthors,
+    (val) => {
+      currentAuthors = val;
+    },
+    () => BookManager.availableAuthors
+  );
 
   // Session modal
   document.getElementById('session-close-btn').addEventListener('click', closeSessionModal);
@@ -1026,19 +1178,7 @@ function setupEventListeners() {
 
   // Admin panel event listeners
   if (Auth.isAdmin()) {
-    document.getElementById('admin-add-user-btn')?.addEventListener('click', () => openUserModal());
-    document.getElementById('user-modal-close')?.addEventListener('click', closeUserModal);
-    document.getElementById('user-cancel-btn')?.addEventListener('click', closeUserModal);
-    document.getElementById('user-modal')?.addEventListener('click', (e) => {
-      if (e.target.id === 'user-modal') closeUserModal();
-    });
-    document.getElementById('user-form')?.addEventListener('submit', handleUserSubmit);
-    document.getElementById('reset-pw-close')?.addEventListener('click', closeResetPwModal);
-    document.getElementById('reset-pw-cancel')?.addEventListener('click', closeResetPwModal);
-    document.getElementById('reset-pw-modal')?.addEventListener('click', (e) => {
-      if (e.target.id === 'reset-pw-modal') closeResetPwModal();
-    });
-    document.getElementById('reset-pw-form')?.addEventListener('submit', handleResetPassword);
+    setupAdminEventListeners();
   }
 
   // Feedback modal (from header menu)
@@ -1058,7 +1198,8 @@ function setupEventListeners() {
     document.getElementById('feedback-modal').classList.add('hidden');
   });
   document.getElementById('feedback-modal').addEventListener('click', (e) => {
-    if (e.target.id === 'feedback-modal') document.getElementById('feedback-modal').classList.add('hidden');
+    if (e.target.id === 'feedback-modal')
+      document.getElementById('feedback-modal').classList.add('hidden');
   });
 
   document.getElementById('feedback-message').addEventListener('input', (e) => {
@@ -1070,7 +1211,10 @@ function setupEventListeners() {
     const errEl = document.getElementById('feedback-form-error');
     errEl.textContent = '';
     const message = document.getElementById('feedback-message').value.trim();
-    if (message.length < 3) { errEl.textContent = t('settings.feedbackMinLength'); return; }
+    if (message.length < 3) {
+      errEl.textContent = t('settings.feedbackMinLength');
+      return;
+    }
 
     const submitBtn = e.target.querySelector('button[type="submit"]');
     const origText = submitBtn.textContent;
@@ -1082,13 +1226,18 @@ function setupEventListeners() {
       if (!res.success) throw new Error(res.error || 'Failed');
       document.getElementById('feedback-modal').classList.add('hidden');
       showToast(t('settings.feedbackSent'), 'success');
-    } catch (err) { errEl.textContent = err.message; }
-    finally { submitBtn.disabled = false; submitBtn.textContent = origText; }
+    } catch (err) {
+      errEl.textContent = err.message;
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = origText;
+    }
   });
 
   // Settings inline feedback form
   document.getElementById('settings-feedback-message')?.addEventListener('input', (e) => {
-    document.getElementById('settings-feedback-char-count').textContent = `${e.target.value.length} / 2000`;
+    document.getElementById('settings-feedback-char-count').textContent =
+      `${e.target.value.length} / 2000`;
   });
 
   document.getElementById('settings-feedback-submit')?.addEventListener('click', async () => {
@@ -1096,7 +1245,10 @@ function setupEventListeners() {
     errEl.textContent = '';
     const textarea = document.getElementById('settings-feedback-message');
     const message = textarea.value.trim();
-    if (message.length < 3) { errEl.textContent = t('settings.feedbackMinLength'); return; }
+    if (message.length < 3) {
+      errEl.textContent = t('settings.feedbackMinLength');
+      return;
+    }
 
     const btn = document.getElementById('settings-feedback-submit');
     const origText = btn.textContent;
@@ -1109,14 +1261,24 @@ function setupEventListeners() {
       textarea.value = '';
       document.getElementById('settings-feedback-char-count').textContent = '0 / 2000';
       showToast(t('settings.feedbackSent'), 'success');
-    } catch (err) { errEl.textContent = err.message; }
-    finally { btn.disabled = false; btn.textContent = origText; }
+    } catch (err) {
+      errEl.textContent = err.message;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = origText;
+    }
   });
-
 }
 
 // ============ Tag Autocomplete ============
-function setupTagAutocomplete(inputId, suggestionsId, chipsId, getValues, setValues, getSuggestions) {
+function setupTagAutocomplete(
+  inputId,
+  suggestionsId,
+  chipsId,
+  getValues,
+  setValues,
+  getSuggestions
+) {
   const input = document.getElementById(inputId);
   const suggestionsEl = document.getElementById(suggestionsId);
 
@@ -1129,8 +1291,10 @@ function setupTagAutocomplete(inputId, suggestionsId, chipsId, getValues, setVal
 
     const currentVals = getValues();
     const suggestions = typeof getSuggestions === 'function' ? getSuggestions() : getSuggestions;
-    const matches = suggestions.filter(s =>
-      s.toLowerCase().includes(query) && !currentVals.some(v => v.toLowerCase() === s.toLowerCase())
+    const matches = suggestions.filter(
+      (s) =>
+        s.toLowerCase().includes(query) &&
+        !currentVals.some((v) => v.toLowerCase() === s.toLowerCase())
     );
 
     if (matches.length === 0) {
@@ -1138,13 +1302,16 @@ function setupTagAutocomplete(inputId, suggestionsId, chipsId, getValues, setVal
       return;
     }
 
-    suggestionsEl.innerHTML = matches.map(m =>
-      `<div class="tag-suggestion-item" data-value="${escapeHtml(m)}">${escapeHtml(m)}</div>`
-    ).join('');
+    suggestionsEl.innerHTML = matches
+      .map(
+        (m) =>
+          `<div class="tag-suggestion-item" data-value="${escapeHtml(m)}">${escapeHtml(m)}</div>`
+      )
+      .join('');
     suggestionsEl.classList.remove('hidden');
 
     // Click on suggestion
-    suggestionsEl.querySelectorAll('.tag-suggestion-item').forEach(item => {
+    suggestionsEl.querySelectorAll('.tag-suggestion-item').forEach((item) => {
       item.addEventListener('click', () => {
         const vals = getValues();
         vals.push(item.dataset.value);
@@ -1163,7 +1330,7 @@ function setupTagAutocomplete(inputId, suggestionsId, chipsId, getValues, setVal
       const val = input.value.trim();
       if (val) {
         const vals = getValues();
-        if (!vals.some(v => v.toLowerCase() === val.toLowerCase())) {
+        if (!vals.some((v) => v.toLowerCase() === val.toLowerCase())) {
           vals.push(val);
           setValues(vals);
           renderTagChips(chipsId, getValues, setValues);
@@ -1185,11 +1352,14 @@ function setupTagAutocomplete(inputId, suggestionsId, chipsId, getValues, setVal
 function renderTagChips(chipsId, getValues, setValues) {
   const container = document.getElementById(chipsId);
   const values = getValues();
-  container.innerHTML = values.map((val, i) =>
-    `<span class="tag-chip">${escapeHtml(val)}<button type="button" class="tag-chip-remove" data-index="${i}">×</button></span>`
-  ).join('');
+  container.innerHTML = values
+    .map(
+      (val, i) =>
+        `<span class="tag-chip">${escapeHtml(val)}<button type="button" class="tag-chip-remove" data-index="${i}">×</button></span>`
+    )
+    .join('');
 
-  container.querySelectorAll('.tag-chip-remove').forEach(btn => {
+  container.querySelectorAll('.tag-chip-remove').forEach((btn) => {
     btn.addEventListener('click', () => {
       const idx = parseInt(btn.dataset.index);
       const vals = getValues();
@@ -1205,16 +1375,24 @@ function populateFilterDropdowns() {
   const genreFilter = document.getElementById('genre-filter');
   const topicFilter = document.getElementById('topic-filter');
 
-  genreFilter.innerHTML = `<option value="">${escapeHtml(t('library.allGenres'))}</option>` +
+  genreFilter.innerHTML =
+    `<option value="">${escapeHtml(t('library.allGenres'))}</option>` +
     `<optgroup label="${escapeHtml(getGenreLabel('fiction'))}">` +
-    GENRE_HIERARCHY.fiction.map(key => `<option value="${key}">${escapeHtml(getGenreLabel(key))}</option>`).join('') +
+    GENRE_HIERARCHY.fiction
+      .map((key) => `<option value="${key}">${escapeHtml(getGenreLabel(key))}</option>`)
+      .join('') +
     `</optgroup>` +
     `<optgroup label="${escapeHtml(getGenreLabel('nonfiction'))}">` +
-    GENRE_HIERARCHY.nonfiction.map(key => `<option value="${key}">${escapeHtml(getGenreLabel(key))}</option>`).join('') +
+    GENRE_HIERARCHY.nonfiction
+      .map((key) => `<option value="${key}">${escapeHtml(getGenreLabel(key))}</option>`)
+      .join('') +
     `</optgroup>`;
 
-  topicFilter.innerHTML = '<option value="">All Topics</option>' +
-    BookManager.availableTopics.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+  topicFilter.innerHTML =
+    '<option value="">All Topics</option>' +
+    BookManager.availableTopics
+      .map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`)
+      .join('');
 }
 
 // ============ Active Filter Pills ============
@@ -1224,12 +1402,12 @@ function renderActiveFilterPills() {
 
   const pills = [];
   const sortLabels = {
-    'newest': t('library.newestFirst'),
+    newest: t('library.newestFirst'),
     'title-az': t('library.titleAZ'),
     'title-za': t('library.titleZA'),
-    'author': t('library.author'),
-    'status': t('library.statusSort'),
-    'progress': t('library.progress'),
+    author: t('library.author'),
+    status: t('library.statusSort'),
+    progress: t('library.progress'),
     'finish-date': t('library.finishDate')
   };
 
@@ -1287,7 +1465,7 @@ function renderActiveFilterPills() {
 
   // Format pill
   if (BookManager.currentAudiobookFilter !== 'all') {
-    const formatLabels = { 'paper': '📕 Paper', 'ebook': '📱 E-book', 'audiobook': '🎧 Audiobook' };
+    const formatLabels = { paper: '📕 Paper', ebook: '📱 E-book', audiobook: '🎧 Audiobook' };
     pills.push({
       label: formatLabels[BookManager.currentAudiobookFilter] || BookManager.currentAudiobookFilter,
       clear: () => {
@@ -1326,12 +1504,15 @@ function renderActiveFilterPills() {
   }
 
   // Render
-  container.innerHTML = pills.map((pill, i) =>
-    `<span class="filter-pill" data-pill-idx="${i}">${escapeHtml(pill.label)}<button class="filter-pill-remove" data-pill-idx="${i}">×</button></span>`
-  ).join('');
+  container.innerHTML = pills
+    .map(
+      (pill, i) =>
+        `<span class="filter-pill" data-pill-idx="${i}">${escapeHtml(pill.label)}<button class="filter-pill-remove" data-pill-idx="${i}">×</button></span>`
+    )
+    .join('');
 
   // Attach clear handlers
-  container.querySelectorAll('.filter-pill-remove').forEach(btn => {
+  container.querySelectorAll('.filter-pill-remove').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const idx = parseInt(btn.dataset.pillIdx);
@@ -1349,27 +1530,27 @@ function renderActiveFilterPills() {
 // ============ Filter Tab Counts ============
 function updateFilterTabCounts() {
   const counts = {
-    'all': BookManager.books.length,
+    all: BookManager.books.length,
     'want-to-read': 0,
     'up-next': 0,
-    'reading': 0,
-    'read': 0
+    reading: 0,
+    read: 0
   };
 
-  BookManager.books.forEach(book => {
+  BookManager.books.forEach((book) => {
     if (counts[book.status] !== undefined) {
       counts[book.status]++;
     }
   });
 
-  document.querySelectorAll('.filter-tab').forEach(tab => {
+  document.querySelectorAll('.filter-tab').forEach((tab) => {
     const status = tab.dataset.status;
     const label = {
-      'all': t('library.all'),
+      all: t('library.all'),
       'want-to-read': t('status.wantToRead'),
       'up-next': t('status.upNext'),
-      'reading': t('status.reading'),
-      'read': t('status.read')
+      reading: t('status.reading'),
+      read: t('status.read')
     }[status];
     tab.textContent = `${label} (${counts[status]})`;
   });
@@ -1413,7 +1594,9 @@ function renderHome() {
 
   const readingBooks = BookManager.getBooksByStatus('reading');
   // Sort by progress descending — most-read first
-  readingBooks.sort((a, b) => BookManager.getProgressPercent(b) - BookManager.getProgressPercent(a));
+  readingBooks.sort(
+    (a, b) => BookManager.getProgressPercent(b) - BookManager.getProgressPercent(a)
+  );
   const upNextBooks = BookManager.getBooksByStatus('up-next');
 
   const container = document.getElementById('reading-now-container');
@@ -1430,17 +1613,22 @@ function renderHome() {
     </div>`;
     dotsEl.innerHTML = '';
   } else {
-    container.innerHTML = readingBooks.map((book, i) => {
-      const card = createHomeCard(book, true, true);
-      return `<div class="carousel-slide" data-index="${i}">${card}</div>`;
-    }).join('');
+    container.innerHTML = readingBooks
+      .map((book, i) => {
+        const card = createHomeCard(book, true, true);
+        return `<div class="carousel-slide" data-index="${i}">${card}</div>`;
+      })
+      .join('');
 
     // Dots
     if (readingBooks.length > 1) {
-      dotsEl.innerHTML = readingBooks.map((_, i) =>
-        `<button class="carousel-dot${i === 0 ? ' active' : ''}" data-index="${i}"></button>`
-      ).join('');
-      dotsEl.querySelectorAll('.carousel-dot').forEach(dot => {
+      dotsEl.innerHTML = readingBooks
+        .map(
+          (_, i) =>
+            `<button class="carousel-dot${i === 0 ? ' active' : ''}" data-index="${i}"></button>`
+        )
+        .join('');
+      dotsEl.querySelectorAll('.carousel-dot').forEach((dot) => {
         dot.addEventListener('click', () => {
           scrollToSlide(parseInt(dot.dataset.index));
         });
@@ -1464,23 +1652,26 @@ function renderHome() {
   // --- Up Next (thumbnails) ---
   const upNextContainer = document.getElementById('up-next-container');
   if (upNextBooks.length === 0) {
-    upNextContainer.innerHTML = '<div class="empty-state-inline"><span class="empty-state-inline-icon">⏭️</span>No books queued up yet</div>';
+    upNextContainer.innerHTML =
+      '<div class="empty-state-inline"><span class="empty-state-inline-icon">⏭️</span>No books queued up yet</div>';
   } else {
-    upNextContainer.innerHTML = upNextBooks.map(book => {
-      const safeCover = sanitizeImageUrl(book.cover_image);
-      const cover = safeCover
-        ? `<img class="up-next-thumb-img" src="${escapeAttribute(safeCover)}" alt="" />`
-        : `<div class="up-next-thumb-placeholder">📖</div>`;
-      const title = escapeHtml(book.name);
-      return `<div class="up-next-thumb" data-book-id="${book.id}">${cover}<div class="up-next-thumb-title">${title}</div></div>`;
-    }).join('');
-    upNextContainer.querySelectorAll('.up-next-thumb').forEach(el => {
+    upNextContainer.innerHTML = upNextBooks
+      .map((book) => {
+        const safeCover = sanitizeImageUrl(book.cover_image);
+        const cover = safeCover
+          ? `<img class="up-next-thumb-img" src="${escapeAttribute(safeCover)}" alt="" />`
+          : `<div class="up-next-thumb-placeholder">📖</div>`;
+        const title = escapeHtml(book.name);
+        return `<div class="up-next-thumb" data-book-id="${book.id}">${cover}<div class="up-next-thumb-title">${title}</div></div>`;
+      })
+      .join('');
+    upNextContainer.querySelectorAll('.up-next-thumb').forEach((el) => {
       el.addEventListener('click', () => openDetailModal(parseInt(el.dataset.bookId)));
     });
   }
 
   // Add click listeners for carousel cards
-  document.querySelectorAll('.home-card').forEach(card => {
+  document.querySelectorAll('.home-card').forEach((card) => {
     card.addEventListener('click', () => {
       const bookId = parseInt(card.dataset.bookId);
       openDetailModal(bookId);
@@ -1489,7 +1680,7 @@ function renderHome() {
 
   // --- Log Reading pill: Show if there are non-read books ---
   const logBtn = document.getElementById('home-log-reading-btn');
-  const allNonRead = BookManager.books.filter(b => b.status !== 'read');
+  const allNonRead = BookManager.books.filter((b) => b.status !== 'read');
   if (allNonRead.length > 0) {
     logBtn.classList.remove('hidden');
   } else {
@@ -1515,7 +1706,10 @@ function updateCarouselDots(activeIndex) {
 function showBookPicker(readingBooks, otherBooks) {
   // Remove existing picker
   const existing = document.querySelector('.book-picker-dropdown');
-  if (existing) { existing.remove(); return; }
+  if (existing) {
+    existing.remove();
+    return;
+  }
 
   const wrapper = document.getElementById('home-view');
   const dropdown = document.createElement('div');
@@ -1541,19 +1735,19 @@ function showBookPicker(readingBooks, otherBooks) {
 
   let html = '';
   if (readingBooks.length > 0) {
-    html += readingBooks.map(b => renderItem(b, false)).join('');
+    html += readingBooks.map((b) => renderItem(b, false)).join('');
   }
   if (otherBooks.length > 0) {
     if (readingBooks.length > 0) {
       html += '<div class="book-picker-divider">' + t('home.otherBooks') + '</div>';
     }
-    html += otherBooks.map(b => renderItem(b, true)).join('');
+    html += otherBooks.map((b) => renderItem(b, true)).join('');
   }
 
   dropdown.innerHTML = html;
   wrapper.appendChild(dropdown);
 
-  dropdown.querySelectorAll('.book-picker-item').forEach(item => {
+  dropdown.querySelectorAll('.book-picker-item').forEach((item) => {
     item.addEventListener('click', async () => {
       const bookId = parseInt(item.dataset.bookId);
       const needsPromote = item.dataset.needsPromote === 'true';
@@ -1597,31 +1791,36 @@ async function renderStreakTracker() {
       return;
     }
 
-    const { days, streak, todayRead } = result;
+    const { days, streak } = result;
     const showFlame = streak >= 3;
 
-    let dotsHtml = days.map((day, i) => {
-      const isToday = i === days.length - 1;
-      const classes = ['streak-dot'];
-      if (day.read) classes.push('active');
-      if (isToday) classes.push('today');
-      // Show weekday initial
-      const date = new Date(day.date + 'T12:00:00');
-      const dayLabel = date.toLocaleDateString('en', { weekday: 'narrow' });
-      return `<div class="${classes.join(' ')}" title="${day.date}"><span class="streak-day-label">${dayLabel}</span></div>`;
-    }).join('');
+    let dotsHtml = days
+      .map((day, i) => {
+        const isToday = i === days.length - 1;
+        const classes = ['streak-dot'];
+        if (day.read) classes.push('active');
+        if (isToday) classes.push('today');
+        // Show weekday initial
+        const date = new Date(day.date + 'T12:00:00');
+        const dayLabel = date.toLocaleDateString('en', { weekday: 'narrow' });
+        return `<div class="${classes.join(' ')}" title="${day.date}"><span class="streak-day-label">${dayLabel}</span></div>`;
+      })
+      .join('');
 
     const flameHtml = showFlame ? '<span class="streak-flame">🔥</span>' : '';
-    const streakText = streak > 0
-      ? `<span class="streak-count">${t('home.dayStreak', { count: streak })} ${flameHtml}</span>`
-      : '<span class="streak-count streak-count-zero">' + t('home.startStreak') + '</span>';
+    const streakText =
+      streak > 0
+        ? `<span class="streak-count">${t('home.dayStreak', { count: streak })} ${flameHtml}</span>`
+        : '<span class="streak-count streak-count-zero">' + t('home.startStreak') + '</span>';
 
     container.innerHTML = `
       <div class="streak-dots" style="cursor:pointer" id="streak-dots-tap">${dotsHtml}</div>
       ${streakText}
     `;
     // Make tappable to open calendar
-    container.querySelector('#streak-dots-tap')?.addEventListener('click', () => openActivityCalendar());
+    container
+      .querySelector('#streak-dots-tap')
+      ?.addEventListener('click', () => openActivityCalendar());
   } catch (error) {
     console.error('Failed to load streak data:', error);
     container.innerHTML = '';
@@ -1646,7 +1845,10 @@ async function renderCalendarMonth(year, month) {
 
   try {
     const result = await API.getActivityCalendar(year, month);
-    if (!result.success) { body.innerHTML = ''; return; }
+    if (!result.success) {
+      body.innerHTML = '';
+      return;
+    }
 
     const { sessions, streak, daysRead, totalSessions } = result;
     const monthNames = t('calendar.monthNames');
@@ -1714,7 +1916,9 @@ async function renderCalendarMonth(year, month) {
         </div>
       </div>
       <div class="cal-grid">
-        ${t('calendar.dayHeaders').map(d => `<div class="cal-header">${d}</div>`).join('')}
+        ${t('calendar.dayHeaders')
+          .map((d) => `<div class="cal-header">${d}</div>`)
+          .join('')}
         ${gridHtml}
       </div>
     `;
@@ -1722,13 +1926,19 @@ async function renderCalendarMonth(year, month) {
     // Nav handlers
     body.querySelector('.cal-prev')?.addEventListener('click', () => {
       calendarMonth--;
-      if (calendarMonth < 1) { calendarMonth = 12; calendarYear--; }
+      if (calendarMonth < 1) {
+        calendarMonth = 12;
+        calendarYear--;
+      }
       renderCalendarMonth(calendarYear, calendarMonth);
     });
     body.querySelector('.cal-next')?.addEventListener('click', () => {
       if (isCurrentMonth) return;
       calendarMonth++;
-      if (calendarMonth > 12) { calendarMonth = 1; calendarYear++; }
+      if (calendarMonth > 12) {
+        calendarMonth = 1;
+        calendarYear++;
+      }
       renderCalendarMonth(calendarYear, calendarMonth);
     });
   } catch (error) {
@@ -1743,9 +1953,10 @@ function createHomeCard(book, isReading, isFeatured = false) {
     ? `<img src="${escapeAttribute(safeCover)}" alt="${escapeHtml(book.name)}" class="home-card-cover" />`
     : `<div class="home-card-cover-placeholder">📖</div>`;
 
-  const authorsHtml = book.authors && book.authors.length > 0
-    ? `<div class="home-card-authors">${escapeHtml(book.authors.join(', '))}</div>`
-    : '';
+  const authorsHtml =
+    book.authors && book.authors.length > 0
+      ? `<div class="home-card-authors">${escapeHtml(book.authors.join(', '))}</div>`
+      : '';
 
   // Format overlay badge on cover (emoji only, floating circle)
   let formatOverlay = '';
@@ -1802,7 +2013,13 @@ function renderBooks() {
   const books = BookManager.getFilteredBooks();
 
   if (books.length === 0) {
-    const hasFilters = BookManager.currentSearch || BookManager.currentFilter.length > 0 || BookManager.currentGenreFilter || BookManager.currentTopicFilter || BookManager.currentAuthorFilter || BookManager.currentAudiobookFilter !== 'all';
+    const hasFilters =
+      BookManager.currentSearch ||
+      BookManager.currentFilter.length > 0 ||
+      BookManager.currentGenreFilter ||
+      BookManager.currentTopicFilter ||
+      BookManager.currentAuthorFilter ||
+      BookManager.currentAudiobookFilter !== 'all';
     container.innerHTML = `
       <div class="empty-state">
         <div class="empty-state-icon">${hasFilters ? '🔍' : '📚'}</div>
@@ -1813,14 +2030,19 @@ function renderBooks() {
     return;
   }
 
-  container.innerHTML = books.map(book => createBookCard(book)).join('');
+  container.innerHTML = books.map((book) => createBookCard(book)).join('');
 
   // Add click listeners — opens detail view (on inner content only to avoid swipe conflicts)
-  container.querySelectorAll('.book-card').forEach(card => {
+  container.querySelectorAll('.book-card').forEach((card) => {
     const clickTarget = card.querySelector('.book-card-inner') || card;
-    clickTarget.addEventListener('click', (e) => {
+    clickTarget.addEventListener('click', (_e) => {
       // Don't open if we just finished swiping
-      if (clickTarget.style.transform && clickTarget.style.transform !== 'translateX(0px)' && clickTarget.style.transform !== 'translateX(0)') return;
+      if (
+        clickTarget.style.transform &&
+        clickTarget.style.transform !== 'translateX(0px)' &&
+        clickTarget.style.transform !== 'translateX(0)'
+      )
+        return;
       const bookId = parseInt(card.dataset.bookId);
       openDetailModal(bookId);
     });
@@ -1834,8 +2056,8 @@ function createBookCard(book) {
   const statusLabel = {
     'want-to-read': t('status.wantToRead'),
     'up-next': t('status.upNext'),
-    'reading': t('status.reading'),
-    'read': t('status.read')
+    reading: t('status.reading'),
+    read: t('status.read')
   }[book.status];
 
   const safeCover = sanitizeImageUrl(book.cover_image);
@@ -1853,21 +2075,25 @@ function createBookCard(book) {
 
   const coverHtml = `<div class="book-cover-wrap">${coverImg}${formatOverlay}</div>`;
 
-  const authorsHtml = book.authors && book.authors.length > 0
-    ? `<div class="book-authors">${escapeHtml(book.authors.join(', '))}</div>`
-    : '';
+  const authorsHtml =
+    book.authors && book.authors.length > 0
+      ? `<div class="book-authors">${escapeHtml(book.authors.join(', '))}</div>`
+      : '';
 
-  const genresHtml = book.genres && book.genres.length > 0
-    ? book.genres.map(g => `<span class="tag tag-genre">${escapeHtml(getGenreLabel(g))}</span>`).join('')
-    : '';
+  const genresHtml =
+    book.genres && book.genres.length > 0
+      ? book.genres
+          .map((g) => `<span class="tag tag-genre">${escapeHtml(getGenreLabel(g))}</span>`)
+          .join('')
+      : '';
 
-  const topicsHtml = book.topics && book.topics.length > 0
-    ? book.topics.map(t => `<span class="tag tag-topic">${escapeHtml(t)}</span>`).join('')
-    : '';
+  const topicsHtml =
+    book.topics && book.topics.length > 0
+      ? book.topics.map((t) => `<span class="tag tag-topic">${escapeHtml(t)}</span>`).join('')
+      : '';
 
-  const tagsHtml = (genresHtml || topicsHtml)
-    ? `<div class="book-tags">${genresHtml}${topicsHtml}</div>`
-    : '';
+  const tagsHtml =
+    genresHtml || topicsHtml ? `<div class="book-tags">${genresHtml}${topicsHtml}</div>` : '';
   // Compact badge (text) for list view
   let compactBadgeHtml = '';
   if (book.format === 'audiobook') {
@@ -1922,7 +2148,9 @@ function createBookCard(book) {
 function renderMarkdown(text) {
   if (!text) return '';
   return text
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
     .replace(/^### (.+)$/gm, '<h4>$1</h4>')
     .replace(/^## (.+)$/gm, '<h3>$1</h3>')
     .replace(/^# (.+)$/gm, '<h2>$1</h2>')
@@ -1944,8 +2172,8 @@ function openDetailModal(bookId) {
   const statusLabel = {
     'want-to-read': t('status.wantToRead'),
     'up-next': t('status.upNext'),
-    'reading': t('status.reading'),
-    'read': t('status.read')
+    reading: t('status.reading'),
+    read: t('status.read')
   }[book.status];
 
   const safeCover = sanitizeImageUrl(book.cover_image);
@@ -1953,19 +2181,38 @@ function openDetailModal(bookId) {
     ? `<img src="${escapeAttribute(safeCover)}" alt="${escapeHtml(book.name)}" class="detail-cover" />`
     : `<div class="detail-cover-placeholder">📖</div>`;
 
-  const authorsText = book.authors && book.authors.length > 0
-    ? book.authors.map(a => `<span class="detail-author-link" data-author="${escapeHtml(a)}">${escapeHtml(a)}</span>`).join(', ')
-    : '';
+  const authorsText =
+    book.authors && book.authors.length > 0
+      ? book.authors
+          .map(
+            (a) =>
+              `<span class="detail-author-link" data-author="${escapeHtml(a)}">${escapeHtml(a)}</span>`
+          )
+          .join(', ')
+      : '';
 
-  const formatLabel = { 'paper': '📕 Paper', 'ebook': '📱 E-book', 'audiobook': '🎧 Audio' }[book.format || 'paper'];
+  const formatLabel = { paper: '📕 Paper', ebook: '📱 E-book', audiobook: '🎧 Audio' }[
+    book.format || 'paper'
+  ];
 
   // Tags (genres + topics combined inline)
   const allTags = [];
-  if (book.genres) allTags.push(...book.genres.map(g => `<span class="tag tag-genre detail-tag-link" data-genre="${escapeHtml(g)}">${escapeHtml(getGenreLabel(g))}</span>`));
-  if (book.topics) allTags.push(...book.topics.map(t => `<span class="tag tag-topic detail-tag-link" data-topic="${escapeHtml(t)}">${escapeHtml(t)}</span>`));
-  const tagsHtml = allTags.length > 0
-    ? `<div class="detail-tags-row">${allTags.join('')}</div>`
-    : '';
+  if (book.genres)
+    allTags.push(
+      ...book.genres.map(
+        (g) =>
+          `<span class="tag tag-genre detail-tag-link" data-genre="${escapeHtml(g)}">${escapeHtml(getGenreLabel(g))}</span>`
+      )
+    );
+  if (book.topics)
+    allTags.push(
+      ...book.topics.map(
+        (t) =>
+          `<span class="tag tag-topic detail-tag-link" data-topic="${escapeHtml(t)}">${escapeHtml(t)}</span>`
+      )
+    );
+  const tagsHtml =
+    allTags.length > 0 ? `<div class="detail-tags-row">${allTags.join('')}</div>` : '';
 
   // Series
   let seriesHtml = '';
@@ -1998,10 +2245,12 @@ function openDetailModal(bookId) {
   // Dates inline
   const dateItems = [];
   if (book.start_date) dateItems.push(`📅 ${formatDate(book.start_date)}`);
-  if (book.finish_date) dateItems.push(`✅ ${formatDate(book.finish_date, book.finish_date_precision || 'day')}`);
-  const datesHtml = dateItems.length > 0
-    ? `<div class="detail-dates">${dateItems.join(' <span class="detail-date-sep">→</span> ')}</div>`
-    : '';
+  if (book.finish_date)
+    dateItems.push(`✅ ${formatDate(book.finish_date, book.finish_date_precision || 'day')}`);
+  const datesHtml =
+    dateItems.length > 0
+      ? `<div class="detail-dates">${dateItems.join(' <span class="detail-date-sep">→</span> ')}</div>`
+      : '';
 
   // Notes & Highlights
   const notesContent = book.thoughts ? renderMarkdown(book.thoughts) : '';
@@ -2061,14 +2310,14 @@ function openDetailModal(bookId) {
   }
 
   // Clickable author links
-  body.querySelectorAll('.detail-author-link').forEach(el => {
+  body.querySelectorAll('.detail-author-link').forEach((el) => {
     el.addEventListener('click', () => {
       navigateToLibraryWithFilter({ author: el.dataset.author });
     });
   });
 
   // Clickable genre/topic tags
-  body.querySelectorAll('.detail-tag-link').forEach(el => {
+  body.querySelectorAll('.detail-tag-link').forEach((el) => {
     if (el.dataset.genre) {
       el.addEventListener('click', () => navigateToLibraryWithFilter({ genre: el.dataset.genre }));
     } else if (el.dataset.topic) {
@@ -2143,22 +2392,28 @@ async function loadDetailSessions(bookId) {
       container.innerHTML = `
         <span class="detail-label">${t('book.readingSessions')}</span>
         <div class="session-list">
-          ${result.sessions.map(s => {
-        let metricHtml = '';
-        if (format === 'audiobook') {
-          // Show duration in hh:mm format for audiobooks
-          metricHtml = s.duration_minutes ? `<span class="session-pages">🎧 ${formatDuration(s.duration_minutes)}</span>` : '';
-        } else {
-          metricHtml = `<span class="session-pages">p. ${s.pages_read}</span>`;
-          if (s.duration_minutes) metricHtml += ` <span class="session-duration">${s.duration_minutes}min</span>`;
-        }
-        return `
+          ${result.sessions
+            .map((s) => {
+              let metricHtml;
+              if (format === 'audiobook') {
+                // Show duration in hh:mm format for audiobooks
+                metricHtml = s.duration_minutes
+                  ? `<span class="session-pages">🎧 ${formatDuration(s.duration_minutes)}</span>`
+                  : '';
+              } else {
+                metricHtml = `<span class="session-pages">p. ${s.pages_read}</span>`;
+                if (s.duration_minutes)
+                  metricHtml += ` <span class="session-duration">${s.duration_minutes}min</span>`;
+              }
+              return `
             <div class="session-item">
               <span class="session-date">${formatDateRelative(s.session_date)}</span>
               ${metricHtml}
               ${s.notes ? `<span class="session-notes">${escapeHtml(s.notes)}</span>` : ''}
             </div>
-          `}).join('')}
+          `;
+            })
+            .join('')}
         </div>
       `;
     } else {
@@ -2194,10 +2449,14 @@ async function handleQuickStatusChange(bookId) {
 function closeDetailModal() {
   const modal = document.getElementById('detail-modal');
   modal.classList.add('modal-closing');
-  modal.addEventListener('animationend', () => {
-    modal.classList.add('hidden');
-    modal.classList.remove('modal-closing');
-  }, { once: true });
+  modal.addEventListener(
+    'animationend',
+    () => {
+      modal.classList.add('hidden');
+      modal.classList.remove('modal-closing');
+    },
+    { once: true }
+  );
 }
 
 // Navigate to library with a specific filter applied
@@ -2218,7 +2477,7 @@ function navigateToLibraryWithFilter({ author, status, genre, topic, search, ser
   document.getElementById('topic-filter').value = '';
   document.getElementById('audiobook-filter').value = 'all';
   document.getElementById('sort-select').value = 'newest';
-  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.filter-tab').forEach((t) => t.classList.remove('active'));
   document.querySelector('.filter-tab[data-status="all"]')?.classList.add('active');
 
   // Apply the requested filter
@@ -2286,7 +2545,10 @@ function openSessionModal(bookId) {
   const format = book.format || 'paper';
   let progressInfo = '';
   if (format === 'paper' && book.total_pages) {
-    progressInfo = t('session.pagesProgress', { current: book.current_page || 0, total: book.total_pages });
+    progressInfo = t('session.pagesProgress', {
+      current: book.current_page || 0,
+      total: book.total_pages
+    });
   } else if (format === 'audiobook' && book.total_duration_min) {
     progressInfo = `${formatDuration(book.current_duration_min || 0)} / ${formatDuration(book.total_duration_min)}`;
   } else if (format === 'ebook') {
@@ -2296,7 +2558,7 @@ function openSessionModal(bookId) {
 
   // Immersive timer info
   document.getElementById('session-timer-title').textContent = book.name;
-  const authors = Array.isArray(book.authors) ? book.authors.join(', ') : (book.authors || '');
+  const authors = Array.isArray(book.authors) ? book.authors.join(', ') : book.authors || '';
   document.getElementById('session-timer-author').textContent = authors;
   document.getElementById('session-timer-progress').textContent = progressInfo;
 
@@ -2330,7 +2592,9 @@ function openSessionModal(bookId) {
     document.getElementById('session-position-minutes').value = currentMin % 60 || '';
     // Show hint with current and total
     const totalDur = book.total_duration_min ? formatDuration(book.total_duration_min) : '?';
-    positionHint.textContent = t('session.timeCurrently', { time: formatDuration(currentMin) }) + (book.total_duration_min ? ` / ${totalDur}` : '');
+    positionHint.textContent =
+      t('session.timeCurrently', { time: formatDuration(currentMin) }) +
+      (book.total_duration_min ? ` / ${totalDur}` : '');
   } else if (format === 'ebook') {
     label.textContent = t('session.percentComplete');
     input.placeholder = t('session.percentCurrently', { percent: book.current_percentage || 0 });
@@ -2359,10 +2623,14 @@ function openSessionModal(bookId) {
 function closeSessionModal() {
   const modal = document.getElementById('session-modal');
   modal.classList.add('modal-closing');
-  modal.addEventListener('animationend', () => {
-    modal.classList.add('hidden');
-    modal.classList.remove('modal-closing');
-  }, { once: true });
+  modal.addEventListener(
+    'animationend',
+    () => {
+      modal.classList.add('hidden');
+      modal.classList.remove('modal-closing');
+    },
+    { once: true }
+  );
 }
 
 async function handleSessionSubmit(e) {
@@ -2417,8 +2685,10 @@ async function handleSessionSubmit(e) {
       // Update the book's progress locally
       if (book) {
         if (result.current_page !== undefined) book.current_page = result.current_page;
-        if (result.current_duration_min !== undefined) book.current_duration_min = result.current_duration_min;
-        if (result.current_percentage !== undefined) book.current_percentage = result.current_percentage;
+        if (result.current_duration_min !== undefined)
+          book.current_duration_min = result.current_duration_min;
+        if (result.current_percentage !== undefined)
+          book.current_percentage = result.current_percentage;
       }
 
       // Append session notes to book's Notes & Highlights
@@ -2428,9 +2698,7 @@ async function handleSessionSubmit(e) {
         const timeStr = `${String(now.getHours()).padStart(2, '0')}.${String(now.getMinutes()).padStart(2, '0')}`;
         const header = `## Reading session ${dateStr} - ${timeStr}`;
         const newEntry = `${header}\n${notes}`;
-        const updatedThoughts = book.thoughts
-          ? `${book.thoughts}\n\n${newEntry}`
-          : newEntry;
+        const updatedThoughts = book.thoughts ? `${book.thoughts}\n\n${newEntry}` : newEntry;
         await BookManager.updateBook({ id: bookId, thoughts: updatedThoughts });
       }
 
@@ -2438,7 +2706,8 @@ async function handleSessionSubmit(e) {
       showToast(t('toast.sessionLogged'), 'success');
       renderHome();
     } else {
-      document.getElementById('session-error').textContent = result.error || t('toast.sessionFailed');
+      document.getElementById('session-error').textContent =
+        result.error || t('toast.sessionFailed');
     }
   } catch {
     showToast(t('toast.sessionFailed'), 'error');
@@ -2462,8 +2731,20 @@ function openBookModal(bookId = null) {
   document.getElementById('book-lookup-banner').classList.add('hidden');
   removeCoverPreview();
   renderGenreSelectGrid([]);
-  renderTagChips('topic-chips', () => currentTopics, (v) => { currentTopics = v; });
-  renderTagChips('author-chips', () => currentAuthors, (v) => { currentAuthors = v; });
+  renderTagChips(
+    'topic-chips',
+    () => currentTopics,
+    (v) => {
+      currentTopics = v;
+    }
+  );
+  renderTagChips(
+    'author-chips',
+    () => currentAuthors,
+    (v) => {
+      currentAuthors = v;
+    }
+  );
   updateFormatFields('paper');
   document.getElementById('book-finish-date-precision').value = 'day';
   updateFinishDateInput('day');
@@ -2520,8 +2801,20 @@ function openBookModal(bookId = null) {
     currentTopics = [...(book.topics || [])];
     currentAuthors = [...(book.authors || [])];
     renderGenreSelectGrid(currentGenres);
-    renderTagChips('topic-chips', () => currentTopics, (v) => { currentTopics = v; });
-    renderTagChips('author-chips', () => currentAuthors, (v) => { currentAuthors = v; });
+    renderTagChips(
+      'topic-chips',
+      () => currentTopics,
+      (v) => {
+        currentTopics = v;
+      }
+    );
+    renderTagChips(
+      'author-chips',
+      () => currentAuthors,
+      (v) => {
+        currentAuthors = v;
+      }
+    );
 
     const safeExistingCover = sanitizeImageUrl(book.cover_image);
     if (safeExistingCover) {
@@ -2560,12 +2853,16 @@ function openBookModal(bookId = null) {
 function closeBookModal() {
   const modal = document.getElementById('book-modal');
   modal.classList.add('modal-closing');
-  modal.addEventListener('animationend', () => {
-    modal.classList.add('hidden');
-    modal.classList.remove('modal-closing');
-    document.getElementById('form-error').textContent = '';
-    document.getElementById('book-id').value = '';
-  }, { once: true });
+  modal.addEventListener(
+    'animationend',
+    () => {
+      modal.classList.add('hidden');
+      modal.classList.remove('modal-closing');
+      document.getElementById('form-error').textContent = '';
+      document.getElementById('book-id').value = '';
+    },
+    { once: true }
+  );
 }
 
 async function handleBookSubmit(e) {
@@ -2578,7 +2875,12 @@ async function handleBookSubmit(e) {
   const name = document.getElementById('book-name').value.trim();
   const authorsStr = document.getElementById('book-authors').value.trim();
   // Merge any typed text with chip values
-  const typedAuthors = authorsStr ? authorsStr.split(',').map(a => a.trim()).filter(a => a) : [];
+  const typedAuthors = authorsStr
+    ? authorsStr
+        .split(',')
+        .map((a) => a.trim())
+        .filter((a) => a)
+    : [];
   const authors = [...new Set([...currentAuthors, ...typedAuthors])];
   const status = document.getElementById('book-status').value;
   const startDate = document.getElementById('book-start-date').value || null;
@@ -2590,18 +2892,32 @@ async function handleBookSubmit(e) {
   const isbn = document.getElementById('book-isbn').value.trim() || null;
   const format = document.getElementById('book-format').value;
   const isAudiobook = format === 'audiobook';
-  const totalPages = document.getElementById('book-total-pages').value ? parseInt(document.getElementById('book-total-pages').value) : null;
-  const durationHours = document.getElementById('book-total-duration-hours').value ? parseInt(document.getElementById('book-total-duration-hours').value) : 0;
-  const durationMins = document.getElementById('book-total-duration-minutes').value ? parseInt(document.getElementById('book-total-duration-minutes').value) : 0;
-  const totalDurationMin = (durationHours || durationMins) ? (durationHours * 60 + durationMins) : null;
-
+  const totalPages = document.getElementById('book-total-pages').value
+    ? parseInt(document.getElementById('book-total-pages').value)
+    : null;
+  const durationHours = document.getElementById('book-total-duration-hours').value
+    ? parseInt(document.getElementById('book-total-duration-hours').value)
+    : 0;
+  const durationMins = document.getElementById('book-total-duration-minutes').value
+    ? parseInt(document.getElementById('book-total-duration-minutes').value)
+    : 0;
+  const totalDurationMin = durationHours || durationMins ? durationHours * 60 + durationMins : null;
 
   // Current progress fields
-  const currentPage = document.getElementById('book-current-page').value ? parseInt(document.getElementById('book-current-page').value) : 0;
-  const curDurationHours = document.getElementById('book-current-duration-hours').value ? parseInt(document.getElementById('book-current-duration-hours').value) : 0;
-  const curDurationMins = document.getElementById('book-current-duration-minutes').value ? parseInt(document.getElementById('book-current-duration-minutes').value) : 0;
-  const currentDurationMin = (curDurationHours || curDurationMins) ? (curDurationHours * 60 + curDurationMins) : 0;
-  const currentPercentage = document.getElementById('book-current-percentage').value ? parseFloat(document.getElementById('book-current-percentage').value) : 0;
+  const currentPage = document.getElementById('book-current-page').value
+    ? parseInt(document.getElementById('book-current-page').value)
+    : 0;
+  const curDurationHours = document.getElementById('book-current-duration-hours').value
+    ? parseInt(document.getElementById('book-current-duration-hours').value)
+    : 0;
+  const curDurationMins = document.getElementById('book-current-duration-minutes').value
+    ? parseInt(document.getElementById('book-current-duration-minutes').value)
+    : 0;
+  const currentDurationMin =
+    curDurationHours || curDurationMins ? curDurationHours * 60 + curDurationMins : 0;
+  const currentPercentage = document.getElementById('book-current-percentage').value
+    ? parseFloat(document.getElementById('book-current-percentage').value)
+    : 0;
 
   const bookData = {
     name,
@@ -2622,8 +2938,12 @@ async function handleBookSubmit(e) {
     currentDurationMin,
     currentPercentage,
     coverImage: currentUploadedCoverUrl,
-    seriesId: document.getElementById('book-series').value ? parseInt(document.getElementById('book-series').value) : null,
-    seriesOrder: document.getElementById('book-series-order').value ? parseInt(document.getElementById('book-series-order').value) : null
+    seriesId: document.getElementById('book-series').value
+      ? parseInt(document.getElementById('book-series').value)
+      : null,
+    seriesOrder: document.getElementById('book-series-order').value
+      ? parseInt(document.getElementById('book-series-order').value)
+      : null
   };
 
   let result;
@@ -2743,7 +3063,7 @@ async function openScanner() {
           fetchBookMetadata();
         }
       },
-      () => { } // Ignore failures (continuous scanning)
+      () => {} // Ignore failures (continuous scanning)
     );
   } catch (error) {
     console.error('Scanner error:', error);
@@ -2759,7 +3079,9 @@ async function closeScanner() {
   if (activeScanner) {
     try {
       await activeScanner.stop();
-    } catch { }
+    } catch {
+      /* scanner may already be stopped */
+    }
     activeScanner = null;
   }
   // Clear the viewfinder HTML left by the library
@@ -2821,7 +3143,13 @@ function acceptLookupSuggestion() {
   // Auto-fill authors if empty
   if (book.authors && book.authors.length > 0 && currentAuthors.length === 0) {
     currentAuthors = [...book.authors];
-    renderTagChips('author-chips', () => currentAuthors, (v) => { currentAuthors = v; });
+    renderTagChips(
+      'author-chips',
+      () => currentAuthors,
+      (v) => {
+        currentAuthors = v;
+      }
+    );
     document.getElementById('book-authors').value = '';
   }
 
@@ -2880,12 +3208,24 @@ async function fetchBookMetadata() {
       }
       if (meta.authors && meta.authors.length > 0) {
         currentAuthors = [...meta.authors];
-        renderTagChips('author-chips', () => currentAuthors, (v) => { currentAuthors = v; });
+        renderTagChips(
+          'author-chips',
+          () => currentAuthors,
+          (v) => {
+            currentAuthors = v;
+          }
+        );
         document.getElementById('book-authors').value = '';
       }
       if (meta.categories && meta.categories.length > 0) {
         currentTopics = [...new Set([...currentTopics, ...meta.categories])];
-        renderTagChips('topic-chips', () => currentTopics, (v) => { currentTopics = v; });
+        renderTagChips(
+          'topic-chips',
+          () => currentTopics,
+          (v) => {
+            currentTopics = v;
+          }
+        );
       }
       if (meta.pageCount) {
         document.getElementById('book-total-pages').value = meta.pageCount;
@@ -2977,7 +3317,16 @@ async function loadUnifiedStats(from, to) {
     const result = await API.getDashboardStats(from, to);
     if (!result.success) return;
 
-    const { counts, totalPages, readMinutes, listenMinutes, avgDaysToFinish, booksPerMonth, streak, daily } = result;
+    const {
+      counts,
+      totalPages,
+      readMinutes,
+      listenMinutes,
+      avgDaysToFinish,
+      booksPerMonth,
+      streak,
+      daily
+    } = result;
 
     // Status pills
     document.getElementById('stat-read').textContent = counts.read;
@@ -2986,9 +3335,11 @@ async function loadUnifiedStats(from, to) {
     document.getElementById('stat-want').textContent = counts.wantToRead;
 
     // Metric tiles (consistent across all periods)
-    document.getElementById('stat-pace').textContent = avgDaysToFinish !== null ? avgDaysToFinish : '—';
+    document.getElementById('stat-pace').textContent =
+      avgDaysToFinish !== null ? avgDaysToFinish : '—';
     document.getElementById('stat-per-month').textContent = booksPerMonth;
-    document.getElementById('stat-pages').textContent = totalPages > 0 ? totalPages.toLocaleString() : '0';
+    document.getElementById('stat-pages').textContent =
+      totalPages > 0 ? totalPages.toLocaleString() : '0';
     document.getElementById('stat-streak').textContent = streak;
 
     // Read time (paper + ebook sessions)
@@ -3022,7 +3373,11 @@ async function loadYearlyStats(year, compare = false) {
   try {
     const result = await API.getYearlyStats(year, compare);
     if (result.success) {
-      renderChart(result.monthlyBreakdown, compare ? result.previousMonthlyBreakdown : null, compare ? result.previousYear : null);
+      renderChart(
+        result.monthlyBreakdown,
+        compare ? result.previousMonthlyBreakdown : null,
+        compare ? result.previousYear : null
+      );
     }
   } catch (error) {
     console.error('Failed to load yearly stats:', error);
@@ -3052,20 +3407,22 @@ function renderChart(monthlyData, prevYearData = null, prevYear = null) {
   }
 
   const labels = t('calendar.chartMonths');
-  const data = monthlyData.map(m => m.count);
+  const data = monthlyData.map((m) => m.count);
 
-  const datasets = [{
-    label: t('dashboard.booksReadChart'),
-    data,
-    backgroundColor: '#6366f1',
-    borderRadius: 4
-  }];
+  const datasets = [
+    {
+      label: t('dashboard.booksReadChart'),
+      data,
+      backgroundColor: '#6366f1',
+      borderRadius: 4
+    }
+  ];
 
   // Add previous year comparison line
   if (prevYearData && prevYear) {
     datasets.push({
       label: `${prevYear}`,
-      data: prevYearData.map(m => m.count),
+      data: prevYearData.map((m) => m.count),
       type: 'line',
       borderColor: '#a5b4fc',
       borderDash: [5, 5],
@@ -3112,20 +3469,28 @@ function renderGenreChart(genres) {
   const topGenres = genres.slice(0, 8);
 
   const colors = [
-    '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
-    '#ec4899', '#f43f5e', '#f97316', '#eab308'
+    '#6366f1',
+    '#8b5cf6',
+    '#a855f7',
+    '#d946ef',
+    '#ec4899',
+    '#f43f5e',
+    '#f97316',
+    '#eab308'
   ];
 
   genreChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: topGenres.map(g => getGenreLabel(g.name)),
-      datasets: [{
-        data: topGenres.map(g => g.count),
-        backgroundColor: colors.slice(0, topGenres.length),
-        borderWidth: 2,
-        borderColor: '#ffffff'
-      }]
+      labels: topGenres.map((g) => getGenreLabel(g.name)),
+      datasets: [
+        {
+          data: topGenres.map((g) => g.count),
+          backgroundColor: colors.slice(0, topGenres.length),
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }
+      ]
     },
     options: {
       responsive: true,
@@ -3154,9 +3519,11 @@ function populateYearSelector() {
     years.push(i);
   }
 
-  selector.innerHTML = years.map(year =>
-    `<option value="${year}" ${year === currentYear ? 'selected' : ''}>${year}</option>`
-  ).join('');
+  selector.innerHTML = years
+    .map(
+      (year) => `<option value="${year}" ${year === currentYear ? 'selected' : ''}>${year}</option>`
+    )
+    .join('');
 }
 
 function renderDailyChart(days) {
@@ -3167,7 +3534,7 @@ function renderDailyChart(days) {
   }
 
   // Format labels as short dates (e.g. "Feb 20")
-  const labels = days.map(d => {
+  const labels = days.map((d) => {
     const date = new Date(d.date + 'T12:00:00');
     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   });
@@ -3179,13 +3546,13 @@ function renderDailyChart(days) {
       datasets: [
         {
           label: t('dashboard.readingTime'),
-          data: days.map(d => d.readMinutes),
+          data: days.map((d) => d.readMinutes),
           backgroundColor: '#6366f1',
           borderRadius: 2
         },
         {
           label: t('dashboard.listeningTime'),
-          data: days.map(d => d.listenMinutes),
+          data: days.map((d) => d.listenMinutes),
           backgroundColor: '#a855f7',
           borderRadius: 2
         }
@@ -3327,8 +3694,15 @@ function showBooksReadList() {
     showToast('No books finished this year yet');
     return;
   }
-  const list = books.map(b => `<div style="padding:2px 0">📖 ${escapeHtml(b.name)} <small style="opacity:.6">${escapeHtml(b.finish_date || '')}</small></div>`).join('');
-  showToast(`<strong>Books read in ${new Date().getFullYear()}:</strong>${list}`, 'info', 6000, { allowHtml: true });
+  const list = books
+    .map(
+      (b) =>
+        `<div style="padding:2px 0">📖 ${escapeHtml(b.name)} <small style="opacity:.6">${escapeHtml(b.finish_date || '')}</small></div>`
+    )
+    .join('');
+  showToast(`<strong>Books read in ${new Date().getFullYear()}:</strong>${list}`, 'info', 6000, {
+    allowHtml: true
+  });
 }
 
 function openSettings() {
@@ -3336,7 +3710,7 @@ function openSettings() {
   modal.classList.remove('hidden');
   // Load current goal
   const year = new Date().getFullYear();
-  API.getGoal(year).then(result => {
+  API.getGoal(year).then((result) => {
     if (result.success && result.goal) {
       document.getElementById('goal-target-books').value = result.goal.targetBooks || '';
       document.getElementById('goal-target-pages').value = result.goal.targetPages || '';
@@ -3361,12 +3735,12 @@ async function saveGoal() {
     const year = new Date().getFullYear();
     await API.setGoal(year, {
       targetBooks: targetBooks ? parseInt(targetBooks) : null,
-      targetPages: targetPages ? parseInt(targetPages) : null,
+      targetPages: targetPages ? parseInt(targetPages) : null
     });
     showToast(t('toast.goalSaved'), 'success');
     closeSettings();
     loadGoalWidget();
-  } catch (e) {
+  } catch (_e) {
     showToast(t('toast.goalFailed'), 'error');
   }
 }
@@ -3394,7 +3768,7 @@ function formatTimerTime(ms) {
 function getTimerElapsed() {
   if (!timerStartTime) return timerPausedElapsed || 0;
   if (timerPaused) return timerPausedElapsed;
-  return (Date.now() - timerStartTime) + timerPausedElapsed;
+  return Date.now() - timerStartTime + timerPausedElapsed;
 }
 
 function updateTimerDisplay() {
@@ -3443,7 +3817,7 @@ async function acquireWakeLock() {
 
 function releaseWakeLock() {
   if (wakeLockSentinel) {
-    wakeLockSentinel.release().catch(() => { });
+    wakeLockSentinel.release().catch(() => {});
     wakeLockSentinel = null;
   }
 }
@@ -3469,7 +3843,8 @@ function startReadingTimer() {
 
   // Update pause button to show pause icon
   const pauseBtn = document.getElementById('timer-pause-btn');
-  pauseBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
+  pauseBtn.innerHTML =
+    '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
   pauseBtn.title = 'Pause';
 
   acquireWakeLock();
@@ -3486,7 +3861,8 @@ function pauseReadingTimer() {
     timerStartTime = Date.now();
     localStorage.setItem('timerStart', timerStartTime.toString());
     timerInterval = setInterval(updateTimerDisplay, 1000);
-    pauseBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
+    pauseBtn.innerHTML =
+      '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
     pauseBtn.title = 'Pause';
     document.querySelector('.timer-sub').textContent = t('session.reading');
     document.querySelector('.timer-ring-container')?.classList.remove('timer-paused');
@@ -3500,7 +3876,8 @@ function pauseReadingTimer() {
     timerStartTime = null;
     localStorage.removeItem('timerStart');
     localStorage.setItem('timerPausedElapsed', timerPausedElapsed.toString());
-    pauseBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>';
+    pauseBtn.innerHTML =
+      '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>';
     pauseBtn.title = 'Resume';
     document.querySelector('.timer-sub').textContent = t('session.paused');
     document.querySelector('.timer-ring-container')?.classList.add('timer-paused');
@@ -3573,7 +3950,7 @@ async function loadSeriesList() {
 function populateSeriesDropdown(selectedId = null) {
   const select = document.getElementById('book-series');
   select.innerHTML = '<option value="">' + t('book.noSeries') + '</option>';
-  availableSeries.forEach(s => {
+  availableSeries.forEach((s) => {
     const opt = document.createElement('option');
     opt.value = s.id;
     opt.textContent = s.name + (s.totalBooks ? ` (${s.bookCount}/${s.totalBooks})` : '');
@@ -3596,7 +3973,7 @@ async function createNewSeries() {
       populateSeriesDropdown(result.series.id);
       showToast(t('toast.seriesCreated'), 'success');
     }
-  } catch (e) {
+  } catch (_e) {
     showToast(t('toast.seriesFailed'), 'error');
   }
 }
@@ -3616,7 +3993,7 @@ async function exportData() {
       URL.revokeObjectURL(url);
       showToast(t('toast.dataExported'), 'success');
     }
-  } catch (e) {
+  } catch (_e) {
     showToast(t('toast.exportFailed'), 'error');
   }
 }
@@ -3640,7 +4017,12 @@ async function importData(e) {
     const result = await API.importData(data);
     if (result.success) {
       const imp = result.imported;
-      statusEl.textContent = t('import.imported', { books: imp.books, sessions: imp.sessions, goals: imp.goals, series: imp.series });
+      statusEl.textContent = t('import.imported', {
+        books: imp.books,
+        sessions: imp.sessions,
+        goals: imp.goals,
+        series: imp.series
+      });
       showToast(t('toast.importSuccess'), 'success');
       // Reload everything
       await BookManager.loadBooks();
@@ -3663,7 +4045,8 @@ async function importData(e) {
 // Keep modals above the virtual keyboard on mobile
 if (window.visualViewport) {
   const updateKeyboardHeight = () => {
-    const kbHeight = window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop;
+    const kbHeight =
+      window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop;
     document.documentElement.style.setProperty('--keyboard-height', Math.max(0, kbHeight) + 'px');
   };
   window.visualViewport.addEventListener('resize', updateKeyboardHeight);
@@ -3673,9 +4056,46 @@ if (window.visualViewport) {
 // Initialize on load
 init();
 
-
-
 // ============ Change Own Password ============
+// ============ Admin Panel ============
+function setupAdminEventListeners() {
+  document.getElementById('admin-add-user-btn')?.addEventListener('click', () => openUserModal());
+  document.getElementById('user-modal-close')?.addEventListener('click', closeUserModal);
+  document.getElementById('user-cancel-btn')?.addEventListener('click', closeUserModal);
+  document.getElementById('user-modal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'user-modal') closeUserModal();
+  });
+  document.getElementById('user-form')?.addEventListener('submit', handleUserSubmit);
+  document.getElementById('reset-pw-close')?.addEventListener('click', closeResetPwModal);
+  document.getElementById('reset-pw-cancel')?.addEventListener('click', closeResetPwModal);
+  document.getElementById('reset-pw-modal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'reset-pw-modal') closeResetPwModal();
+  });
+  document.getElementById('reset-pw-form')?.addEventListener('submit', handleResetPassword);
+}
+
+function openUserModal() {
+  document.getElementById('user-modal')?.classList.remove('hidden');
+}
+
+function closeUserModal() {
+  document.getElementById('user-modal')?.classList.add('hidden');
+}
+
+async function handleUserSubmit(e) {
+  e.preventDefault();
+  // TODO: Implement user creation/editing
+}
+
+function closeResetPwModal() {
+  document.getElementById('reset-pw-modal')?.classList.add('hidden');
+}
+
+async function handleResetPassword(e) {
+  e.preventDefault();
+  // TODO: Implement password reset
+}
+
 async function handleChangePassword() {
   const statusEl = document.getElementById('password-status');
   statusEl.textContent = '';
@@ -3714,7 +4134,7 @@ async function handleChangePassword() {
     } else {
       statusEl.textContent = result.error || t('toast.operationFailed');
     }
-  } catch (err) {
+  } catch (_err) {
     statusEl.textContent = t('toast.networkError');
   }
 }

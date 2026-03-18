@@ -17,95 +17,95 @@ const STORAGE_KEY = 'bokbad-locale';
  * Supports {{param}} interpolation: t('goal.booksOf', { read: 5, target: 24 })
  */
 export function t(key, params = {}) {
-    const keys = key.split('.');
-    let val = translations;
-    for (const k of keys) {
-        if (val && typeof val === 'object' && k in val) {
-            val = val[k];
-        } else {
-            // Fallback: return the key itself so untranslated keys are visible
-            return key;
-        }
+  const keys = key.split('.');
+  let val = translations;
+  for (const k of keys) {
+    if (val && typeof val === 'object' && k in val) {
+      val = val[k];
+    } else {
+      // Fallback: return the key itself so untranslated keys are visible
+      return key;
     }
-    // Return non-string values (arrays, numbers) as-is
-    if (typeof val !== 'string') return val;
+  }
+  // Return non-string values (arrays, numbers) as-is
+  if (typeof val !== 'string') return val;
 
-    // Interpolate {{param}} placeholders
-    return val.replace(/\{\{(\w+)\}\}/g, (_, p) => {
-        return params[p] !== undefined ? params[p] : `{{${p}}}`;
-    });
+  // Interpolate {{param}} placeholders
+  return val.replace(/\{\{(\w+)\}\}/g, (_, p) => {
+    return params[p] !== undefined ? params[p] : `{{${p}}}`;
+  });
 }
 
 /** Current locale string (e.g. 'en', 'no') */
 export function getLocale() {
-    return currentLocale;
+  return currentLocale;
 }
 
 /** Load a locale JSON and apply to all data-i18n elements */
 export async function setLocale(locale) {
-    if (!SUPPORTED_LOCALES.includes(locale)) locale = 'no';
-    try {
-        const module = await import(`./locales/${locale}.json`);
-        translations = module.default || module;
-        currentLocale = locale;
-        localStorage.setItem(STORAGE_KEY, locale);
-        document.documentElement.lang = locale === 'no' ? 'nb' : locale;
-        translateDOM();
-    } catch (e) {
-        console.error(`Failed to load locale "${locale}":`, e);
-    }
+  if (!SUPPORTED_LOCALES.includes(locale)) locale = 'no';
+  try {
+    const module = await import(`./locales/${locale}.json`);
+    translations = module.default || module;
+    currentLocale = locale;
+    localStorage.setItem(STORAGE_KEY, locale);
+    document.documentElement.lang = locale === 'no' ? 'nb' : locale;
+    translateDOM();
+  } catch (e) {
+    console.error(`Failed to load locale "${locale}":`, e);
+  }
 }
 
 /** Translate all elements with data-i18n attributes */
 function translateDOM() {
-    // textContent
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        const translated = t(key);
-        if (translated !== key) el.textContent = translated;
-    });
-    // placeholders
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-        const key = el.getAttribute('data-i18n-placeholder');
-        const translated = t(key);
-        if (translated !== key) el.placeholder = translated;
-    });
-    // title / aria-label
-    document.querySelectorAll('[data-i18n-title]').forEach(el => {
-        const key = el.getAttribute('data-i18n-title');
-        const translated = t(key);
-        if (translated !== key) {
-            el.title = translated;
-            el.setAttribute('aria-label', translated);
-        }
-    });
-    // innerHTML (for elements that contain emoji + text)
-    document.querySelectorAll('[data-i18n-html]').forEach(el => {
-        const key = el.getAttribute('data-i18n-html');
-        const translated = t(key);
-        if (translated !== key) el.innerHTML = translated;
-    });
+  // textContent
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    const key = el.getAttribute('data-i18n');
+    const translated = t(key);
+    if (translated !== key) el.textContent = translated;
+  });
+  // placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    const translated = t(key);
+    if (translated !== key) el.placeholder = translated;
+  });
+  // title / aria-label
+  document.querySelectorAll('[data-i18n-title]').forEach((el) => {
+    const key = el.getAttribute('data-i18n-title');
+    const translated = t(key);
+    if (translated !== key) {
+      el.title = translated;
+      el.setAttribute('aria-label', translated);
+    }
+  });
+  // innerHTML (for elements that contain emoji + text)
+  document.querySelectorAll('[data-i18n-html]').forEach((el) => {
+    const key = el.getAttribute('data-i18n-html');
+    const translated = t(key);
+    if (translated !== key) el.innerHTML = translated;
+  });
 }
 
 /** Initialize i18n: detect language, load translations */
 export async function initI18n() {
-    // Priority: saved preference → browser language → fallback 'no'
-    const saved = localStorage.getItem(STORAGE_KEY);
-    let locale = 'no';
+  // Priority: saved preference → browser language → fallback 'no'
+  const saved = localStorage.getItem(STORAGE_KEY);
+  let locale;
 
-    if (saved && SUPPORTED_LOCALES.includes(saved)) {
-        locale = saved;
+  if (saved && SUPPORTED_LOCALES.includes(saved)) {
+    locale = saved;
+  } else {
+    // Detect browser language
+    const browserLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
+    if (browserLang.startsWith('en')) {
+      locale = 'en';
     } else {
-        // Detect browser language
-        const browserLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
-        if (browserLang.startsWith('en')) {
-            locale = 'en';
-        } else {
-            locale = 'no'; // Default for nb, nn, or anything else
-        }
+      locale = 'no'; // Default for nb, nn, or anything else
     }
+  }
 
-    await setLocale(locale);
+  await setLocale(locale);
 }
 
 export default { t, getLocale, setLocale, initI18n };
