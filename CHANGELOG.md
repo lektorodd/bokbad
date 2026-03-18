@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.0] - 2026-03-18
+
+### Added
+- **Unit Test Suite** — 56 tests across 4 suites covering date formatting, genre normalization, HTML escaping, and the API client. Run with `npm test`.
+- **Vitest** — fast, Vite-native test runner with jsdom environment for DOM-dependent tests.
+
+### Changed
+- **Code Organization** — extracted utility functions (`formatDate`, `normalizeGenreKey`, `escapeHtml`, etc.) from the monolithic `main.js` into dedicated modules (`src/utils/format.js`, `genre.js`, `escapeHtml.js`) for testability and reusability.
+
 ## [1.16.0] - 2026-03-18
 
 ### Added
