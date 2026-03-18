@@ -292,6 +292,46 @@
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
+/* Skeleton book list (library loading state) */
+.skeleton-book-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 var(--spacing-md);
+}
+
+.skeleton-book-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+}
+
+.skeleton-cover-sm {
+  width: 40px;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.skeleton-book-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skeleton-line {
+  height: 14px;
+  border-radius: var(--radius-sm);
+  width: 85%;
+}
+
+.skeleton-line.short {
+  width: 50%;
+  height: 12px;
+}
+
 /* ===== View Transitions ===== */
 @keyframes viewFadeIn {
   from {
@@ -4515,4 +4555,47 @@ h6 {
 :root.dark-mode .admin-user-badge-user {
   background: var(--color-surface);
   border-color: var(--color-border);
+}
+
+/* ── Announcement Banner ── */
+.announcement-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #fff;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  animation: slideBannerDown 0.3s ease;
+}
+
+.announcement-banner-text {
+  flex: 1;
+}
+
+.announcement-banner-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.announcement-banner-close:hover {
+  color: #fff;
+}
+
+@keyframes slideBannerDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }

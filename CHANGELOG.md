@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.15.0] - 2026-03-18
+
+### Added
+- **PWA Install Support** — added 192×192 and 512×512 PNG icons so Android shows "Add to Home Screen" and iOS displays correct homescreen icons.
+- **Skeleton Loading** — book list now shows animated shimmer placeholders while data loads, replacing the plain "Loading books…" text.
+- **Auto-Versioned Cache** — service worker cache name is now automatically stamped with a unique build hash on every deploy, preventing stale assets.
+
+### Changed
+- **Faster First Load** — barcode scanner library (~100KB) is now lazy-loaded only when the scan button is tapped, reducing initial bundle size.
+- **Enhanced PWA Manifest** — added `id`, `scope`, `categories`, and proper raster icon entries for better installability.
+
 ## [1.14.0] - 2026-03-18
 
 ### Security

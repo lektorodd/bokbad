@@ -3,7 +3,6 @@ import Auth from './auth.js';
 import BookManager from './bookManager.js';
 import API from './api.js';
 import { Chart, registerables } from 'chart.js';
-import { Html5Qrcode } from 'html5-qrcode';
 import { t, getLocale, setLocale, initI18n } from './i18n.js';
 
 // Register Chart.js components
@@ -265,6 +264,62 @@ function showApp() {
   if (adminLink) {
     adminLink.classList.toggle('hidden', !Auth.isAdmin());
   }
+  fetchAnnouncements();
+}
+
+// ── Announcement Banner ──
+async function fetchAnnouncements() {
+  try {
+    const username = Auth.currentUser?.username;
+    const url = `https://admin.lektorodd.no/api/announcements/public.php?app=bokbad${username ? '&username=' + encodeURIComponent(username) : ''}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!data.announcements || !data.announcements.length) return;
+
+    const dismissed = JSON.parse(localStorage.getItem('dismissed_announcements') || '[]');
+    const active = data.announcements.filter(a => !dismissed.includes(a.id));
+    if (!active.length) return;
+
+    const old = document.querySelector('.announcement-banner');
+    if (old) old.remove();
+
+    const banner = document.createElement('div');
+    banner.className = 'announcement-banner';
+    const a = active[0];
+    // Lightweight markdown: **bold** and [text](url)
+    const md = (s) => {
+      let t = escapeHtml(s || '');
+      t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" style="color:inherit;text-decoration:underline;">$1</a>');
+      return t;
+    };
+    banner.innerHTML = `
+      <span class="announcement-banner-text"><strong>${a.icon || '📢'} ${escapeHtml(a.title)}</strong> — ${md(a.message)}</span>
+      <button class="announcement-banner-close" aria-label="Lukk">✕</button>
+    `;
+    banner.querySelector('.announcement-banner-close').addEventListener('click', () => {
+      dismissed.push(a.id);
+      localStorage.setItem('dismissed_announcements', JSON.stringify(dismissed));
+      banner.remove();
+      // Report dismissal to admin
+      const username = Auth.currentUser?.username;
+      if (username) {
+        fetch('https://admin.lektorodd.no/api/announcements/public.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ announcement_id: a.id, username, app: 'bokbad' })
+        }).catch(() => { });
+      }
+    });
+
+    const header = document.querySelector('.app-header');
+    if (header && header.nextSibling) {
+      header.parentNode.insertBefore(banner, header.nextSibling);
+    } else {
+      const app = document.getElementById('app');
+      app.insertBefore(banner, app.firstChild);
+    }
+  } catch (e) { /* silent */ }
 }
 
 function switchView(viewName) {
@@ -2668,6 +2723,7 @@ async function openScanner() {
   overlay.classList.remove('hidden');
 
   try {
+    const { Html5Qrcode } = await import('html5-qrcode');
     activeScanner = new Html5Qrcode('scanner-viewfinder');
     await activeScanner.start(
       { facingMode: 'environment' },

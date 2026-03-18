@@ -20,6 +20,7 @@
   </script>
 
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
   <link rel="manifest" href="/manifest.json" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -222,7 +223,15 @@
           </div>
         </div>
         <div id="books-container" class="books-container">
-          <div class="loading" data-i18n="library.loadingBooks">Loading books...</div>
+          <!-- Skeleton loading placeholders -->
+          <div class="skeleton-book-list" id="books-skeleton">
+            <div class="skeleton-book-card"><div class="skeleton skeleton-cover-sm"></div><div class="skeleton-book-meta"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>
+            <div class="skeleton-book-card"><div class="skeleton skeleton-cover-sm"></div><div class="skeleton-book-meta"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>
+            <div class="skeleton-book-card"><div class="skeleton skeleton-cover-sm"></div><div class="skeleton-book-meta"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>
+            <div class="skeleton-book-card"><div class="skeleton skeleton-cover-sm"></div><div class="skeleton-book-meta"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>
+            <div class="skeleton-book-card"><div class="skeleton skeleton-cover-sm"></div><div class="skeleton-book-meta"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>
+            <div class="skeleton-book-card"><div class="skeleton skeleton-cover-sm"></div><div class="skeleton-book-meta"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div></div>
+          </div>
         </div>
       </div>
 
