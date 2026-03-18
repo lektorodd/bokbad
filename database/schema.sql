@@ -109,8 +109,4 @@ CREATE TABLE IF NOT EXISTS platform_feedback (
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Insert test user (username: 'testesen', password: 'password')
--- Password hash generated with: password_hash('password', PASSWORD_DEFAULT)
-INSERT INTO users (username, password_hash, role) VALUES 
-('testesen', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin')
-ON DUPLICATE KEY UPDATE username=username;
+-- For development: create a test user by running database/seed.sql

@@ -46,6 +46,11 @@ function validateRequired($data, $fields) {
     }
 }
 
+function sanitizeInput($str) {
+    return htmlspecialchars(trim($str), ENT_QUOTES, 'UTF-8');
+}
+
+/** @deprecated Use sanitizeInput() instead */
 function sanitizeString($str) {
-    return trim($str);
+    return sanitizeInput($str);
 }

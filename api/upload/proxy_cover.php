@@ -9,6 +9,7 @@ require_once __DIR__ . '/../utils/auth_middleware.php';
 require_once __DIR__ . '/../utils/response.php';
 
 requireAuth();
+requireCsrf();
 
 function isPublicIpAddress($ip) {
     return filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;

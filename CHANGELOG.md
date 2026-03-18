@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.0] - 2026-03-18
+
+### Security
+- **Brute-Force Protection** — login now locks out after 5 failed attempts for 15 minutes, with remaining attempts shown in error messages.
+- **CSRF Token Validation** — all mutation endpoints (POST/PUT/PATCH/DELETE) now require a valid CSRF token, preventing cross-site request forgery attacks.
+- **Input Sanitization** — `sanitizeString()` now applies `htmlspecialchars()` to prevent XSS, renamed to `sanitizeInput()` for clarity.
+- **Test Credentials Separated** — hardcoded test user removed from `schema.sql` and moved to a standalone `database/seed.sql` for development only.
+
+### Fixed
+- **Pinch-to-Zoom** — removed viewport zoom restriction (`user-scalable=no`) so users with vision impairments can pinch-to-zoom on mobile (WCAG 2.1 compliance).
+
 ## [1.13.2] - 2026-02-25
 
 ### Fixed

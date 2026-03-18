@@ -8,6 +8,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     sendError('Method not allowed', 405);
 }
 
+requireCsrf();
+
 logoutUser();
 
 sendSuccess(['message' => 'Logged out successfully']);

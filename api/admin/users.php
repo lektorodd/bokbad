@@ -4,6 +4,7 @@ require_once __DIR__ . '/../utils/auth_middleware.php';
 require_once __DIR__ . '/../utils/response.php';
 
 requireAdmin();
+requireCsrf();
 
 $db = Database::getInstance()->getConnection();
 $method = $_SERVER['REQUEST_METHOD'];

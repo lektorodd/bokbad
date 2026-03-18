@@ -1,7 +1,15 @@
 // API client for backend communication
 const API_BASE = '/api';
 
+// CSRF token storage
+let csrfToken = null;
+
 class API {
+  // Store CSRF token from auth check response
+  static setCsrfToken(token) {
+    csrfToken = token;
+  }
+
   // Authentication
   static async login(username, password, rememberMe = true) {
     return this.post('/auth/login.php', { username, password, remember_me: rememberMe });
@@ -12,7 +20,11 @@ class API {
   }
 
   static async checkAuth() {
-    return this.get('/auth/check.php');
+    const result = await this.get('/auth/check.php');
+    if (result.success && result.csrf_token) {
+      this.setCsrfToken(result.csrf_token);
+    }
+    return result;
   }
 
   // Books
@@ -38,10 +50,16 @@ class API {
     const formData = new FormData();
     formData.append('image', file);
 
+    const headers = {};
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken;
+    }
+
     const response = await fetch(`${API_BASE}/upload/cover.php`, {
       method: 'POST',
       body: formData,
-      credentials: 'include'
+      credentials: 'include',
+      headers
     });
 
     return response.json();
@@ -215,12 +233,13 @@ class API {
   }
 
   static async post(endpoint, data = {}) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
     const response = await fetch(`${API_BASE}${endpoint}`, {
       method: 'POST',
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers,
       body: JSON.stringify(data)
     });
     if (response.status === 401 && !endpoint.includes('/auth/')) {
@@ -230,12 +249,13 @@ class API {
   }
 
   static async put(endpoint, data = {}) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
     const response = await fetch(`${API_BASE}${endpoint}`, {
       method: 'PUT',
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers,
       body: JSON.stringify(data)
     });
     if (response.status === 401 && !endpoint.includes('/auth/')) {
@@ -245,12 +265,13 @@ class API {
   }
 
   static async patch(endpoint, data = {}) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
     const response = await fetch(`${API_BASE}${endpoint}`, {
       method: 'PATCH',
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers,
       body: JSON.stringify(data)
     });
     if (response.status === 401 && !endpoint.includes('/auth/')) {
@@ -260,12 +281,13 @@ class API {
   }
 
   static async delete(endpoint) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
     const response = await fetch(`${API_BASE}${endpoint}`, {
       method: 'DELETE',
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers
     });
     if (response.status === 401 && !endpoint.includes('/auth/')) {
       window.dispatchEvent(new CustomEvent('session-expired'));

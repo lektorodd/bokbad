@@ -136,3 +136,44 @@ function verifyUserPassword($username, $password) {
     
     return false;
 }
+
+// --- CSRF Protection ---
+
+// Generate a CSRF token for the current session (if not already set)
+function generateCsrfToken() {
+    ensureSession();
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+// Get the current CSRF token (without generating a new one)
+function getCsrfToken() {
+    ensureSession();
+    return $_SESSION['csrf_token'] ?? null;
+}
+
+// Validate CSRF token from request header
+function validateCsrfToken() {
+    $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    $sessionToken = getCsrfToken();
+    
+    if (empty($sessionToken) || empty($token)) {
+        return false;
+    }
+    
+    return hash_equals($sessionToken, $token);
+}
+
+// Middleware: require valid CSRF token on mutation requests
+function requireCsrf() {
+    $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+    // Only enforce on mutation methods
+    if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+        if (!validateCsrfToken()) {
+            sendError('Invalid or missing CSRF token', 403);
+        }
+    }
+}
+

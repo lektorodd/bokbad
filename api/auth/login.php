@@ -13,15 +13,52 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $data = getJsonInput();
 validateRequired($data, ['username', 'password']);
 
-$username = sanitizeString($data['username']);
+$username = sanitizeInput($data['username']);
 $password = $data['password'];
+
+// --- Brute-force protection ---
+$ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$maxAttempts = 5;
+$lockoutMinutes = 15;
+
+$db = Database::getInstance()->getConnection();
+
+// Clean up old attempts (> lockout window)
+$db->prepare("DELETE FROM login_attempts WHERE attempt_time < DATE_SUB(NOW(), INTERVAL ? MINUTE)")
+   ->execute([$lockoutMinutes]);
+
+// Count recent failed attempts for this IP+username
+$stmt = $db->prepare(
+    "SELECT COUNT(*) as cnt FROM login_attempts 
+     WHERE ip_address = ? AND username = ? 
+     AND attempt_time > DATE_SUB(NOW(), INTERVAL ? MINUTE)"
+);
+$stmt->execute([$ip, $username, $lockoutMinutes]);
+$attempts = (int) $stmt->fetch()['cnt'];
+
+if ($attempts >= $maxAttempts) {
+    sendError('Too many login attempts. Please try again in ' . $lockoutMinutes . ' minutes.', 429);
+}
 
 // Verify credentials
 $user = verifyUserPassword($username, $password);
 
 if (!$user) {
-    sendError('Invalid username or password', 401);
+    // Record failed attempt
+    $db->prepare("INSERT INTO login_attempts (ip_address, username) VALUES (?, ?)")
+       ->execute([$ip, $username]);
+    
+    $remaining = $maxAttempts - $attempts - 1;
+    $msg = 'Invalid username or password';
+    if ($remaining <= 2 && $remaining > 0) {
+        $msg .= ' (' . $remaining . ' attempts remaining)';
+    }
+    sendError($msg, 401);
 }
+
+// Success — clear failed attempts for this IP+username
+$db->prepare("DELETE FROM login_attempts WHERE ip_address = ? AND username = ?")
+   ->execute([$ip, $username]);
 
 // Handle remember_me: adjust session cookie lifetime
 $rememberMe = isset($data['remember_me']) ? (bool)$data['remember_me'] : true;
@@ -41,6 +78,9 @@ if (!$rememberMe) {
 
 // Login user
 loginUser($user['id'], $user['username'], $user['role'] ?? 'user', $user['must_change_password'] ?? false);
+
+// Track last login
+$db->prepare("UPDATE users SET last_login_at = NOW() WHERE id = ?")->execute([$user['id']]);
 
 // Return success
 sendSuccess([
