@@ -20,6 +20,12 @@ class Database {
             $this->connection = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
             error_log("Database connection failed: " . $e->getMessage());
+            // Also log via structured logger
+            require_once __DIR__ . '/../utils/logger.php';
+            Logger::error('Database connection failed', [
+                'error' => $e->getMessage(),
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            ]);
             http_response_code(500);
             echo json_encode(['success' => false, 'error' => 'Database connection failed']);
             exit();

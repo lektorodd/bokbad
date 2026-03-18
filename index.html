@@ -78,6 +78,24 @@
       </div>
     </div>
 
+    <!-- Error Recovery Screen -->
+    <div id="error-screen" class="error-screen hidden">
+      <div class="error-screen-content">
+        <svg class="error-screen-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <h1 class="error-screen-title">Noe gikk galt</h1>
+        <p class="error-screen-message">Appen kunne ikke lastes. Sjekk nettverkstilkoblingen og prøv igjen.</p>
+        <button id="error-retry-btn" class="btn btn-primary" onclick="location.reload()">Prøv igjen</button>
+        <details class="error-screen-details">
+          <summary>Tekniske detaljer</summary>
+          <pre id="error-details-text"></pre>
+        </details>
+      </div>
+    </div>
+
     <!-- Main App -->
     <div id="app" class="app hidden">
       <!-- Header -->

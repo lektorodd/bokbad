@@ -1,5 +1,6 @@
 <?php
 // JSON response helper functions
+require_once __DIR__ . '/logger.php';
 
 function sendResponse($success, $data = null, $httpCode = 200) {
     http_response_code($httpCode);
@@ -7,6 +8,16 @@ function sendResponse($success, $data = null, $httpCode = 200) {
     
     if ($data !== null) {
         $response = array_merge($response, $data);
+    }
+    
+    // Auto-log server errors
+    if ($httpCode >= 500) {
+        Logger::error($data['error'] ?? 'Server error', [
+            'httpCode' => $httpCode,
+            'endpoint' => $_SERVER['REQUEST_URI'] ?? 'unknown',
+            'method' => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+        ]);
     }
     
     echo json_encode($response);

@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.0] - 2026-03-18
+
+### Added
+- **Pagination API** — book list endpoint (`api/books/index.php`) now supports `?page=N&limit=M` query params, returning `page`, `total`, `totalPages` metadata. Without `page` param, returns all books (backward-compatible).
+- **Error Recovery Screen** — if the app fails to initialize, a user-friendly error screen appears with a "Prøv igjen" (Try again) button and expandable technical details, instead of a blank page.
+- **Database Migration Runner** — CLI script (`api/utils/migrate.php`) that discovers `migration_*.sql` files, tracks applied migrations in a `bokbad_migrations` table, and skips duplicates. Supports `--status` flag.
+- **Structured Error Logging** — `Logger` class (`api/utils/logger.php`) with daily file rotation (`api/logs/error-YYYY-MM-DD.log`). Auto-logs 5xx responses, database connection failures, and failed login attempts with structured context (IP, endpoint, username).
+- **Log Security** — `api/logs/.htaccess` blocks web access to log files.
+
+### Changed
+- **`sendResponse()` / `sendError()`** — 5xx responses are now auto-logged with endpoint, method, and IP.
+- **`database.php`** — connection failures logged via structured Logger.
+- **`login.php`** — failed login attempts logged with username, IP, and remaining attempts count.
+- **`deploy.sh`** — updated to deploy new files (`logger.php`, `migrate.php`, `database.php`, `api/logs/.htaccess`).
+
 ## [1.18.0] - 2026-03-18
 
 ### Changed

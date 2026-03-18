@@ -663,6 +663,19 @@ function setupEventListeners() {
   });
 }
 
+// ============ Error Recovery ============
+function showErrorScreen(error) {
+  // Hide app and login views
+  document.getElementById('login-view')?.classList.add('hidden');
+  document.getElementById('app')?.classList.add('hidden');
+  // Show error screen
+  const screen = document.getElementById('error-screen');
+  const details = document.getElementById('error-details-text');
+  if (screen) screen.classList.remove('hidden');
+  if (details) details.textContent = error?.stack || error?.message || String(error);
+  console.error('Fatal init error:', error);
+}
+
 // ============ Initialize ============
 async function init() {
   initDarkMode();
@@ -739,5 +752,20 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener('scroll', updateKeyboardHeight);
 }
 
+// Global error boundaries
+window.addEventListener('error', (e) => {
+  // Only show error screen if the app hasn't rendered yet
+  const app = document.getElementById('app');
+  if (app?.classList.contains('hidden')) {
+    showErrorScreen(e.error || e.message);
+  }
+});
+window.addEventListener('unhandledrejection', (e) => {
+  const app = document.getElementById('app');
+  if (app?.classList.contains('hidden')) {
+    showErrorScreen(e.reason);
+  }
+});
+
 // Initialize on load
-init();
+init().catch(showErrorScreen);

@@ -407,8 +407,8 @@ npx skills find "redis session management"
 | 2 — PWA & Performance | ✅ Complete | v1.15.0 |
 | 3 — Developer Experience | ✅ Complete | v1.16.0 |
 | 4 — Testing Foundation | ✅ Complete | v1.17.0 |
-| 5 — Architecture Refactoring | ⬜ Not started | |
-| 6 — Scalability & Resilience | ⬜ Not started | |
+| 5 — Architecture Refactoring | ✅ Complete | v1.18.0 |
+| 6 — Scalability & Resilience | ✅ Complete | v1.19.0 |
 | 7 — Long-term Architecture | ⬜ Not started | Future |
 
 > **How to use this plan:** Reference this file path in future conversations:

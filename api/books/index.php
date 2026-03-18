@@ -49,31 +49,28 @@ function serializeBook($book) {
     return $book;
 }
 
-// GET all bokbad_books with optional filters
+// GET all bokbad_books with optional filters and pagination
 function handleGetBooks($db, $userId) {
     $status = $_GET['status'] ?? null;
     $genre = $_GET['genre'] ?? null;
     $topic = $_GET['topic'] ?? null;
     $search = $_GET['search'] ?? null;
     $isAudiobook = $_GET['isAudiobook'] ?? null;
+    $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : null;
+    $limit = isset($_GET['limit']) ? max(1, min(100, (int)$_GET['limit'])) : 50;
     
-    $query = "
-        SELECT b.*, s.name as series_name 
-        FROM bokbad_books b 
-        LEFT JOIN bokbad_series s ON b.series_id = s.id 
-        WHERE b.user_id = ?
-    ";
+    $baseQuery = "FROM bokbad_books b LEFT JOIN bokbad_series s ON b.series_id = s.id WHERE b.user_id = ?";
     $params = [$userId];
     
     // Add status filter
     if ($status && in_array($status, ['want-to-read', 'reading', 'read', 'up-next'])) {
-        $query .= " AND b.status = ?";
+        $baseQuery .= " AND b.status = ?";
         $params[] = $status;
     }
     
     // Add search filter
     if ($search) {
-        $query .= " AND (b.name LIKE ? OR JSON_SEARCH(b.authors, 'one', ?) IS NOT NULL)";
+        $baseQuery .= " AND (b.name LIKE ? OR JSON_SEARCH(b.authors, 'one', ?) IS NOT NULL)";
         $searchTerm = "%{$search}%";
         $params[] = $searchTerm;
         $params[] = $searchTerm;
@@ -81,29 +78,53 @@ function handleGetBooks($db, $userId) {
     
     // Add genre filter
     if ($genre) {
-        $query .= " AND JSON_SEARCH(b.genres, 'one', ?) IS NOT NULL";
+        $baseQuery .= " AND JSON_SEARCH(b.genres, 'one', ?) IS NOT NULL";
         $params[] = $genre;
     }
     
     // Add topic filter
     if ($topic) {
-        $query .= " AND JSON_SEARCH(b.topics, 'one', ?) IS NOT NULL";
+        $baseQuery .= " AND JSON_SEARCH(b.topics, 'one', ?) IS NOT NULL";
         $params[] = $topic;
     }
     
     // Add audiobook filter
     if ($isAudiobook !== null) {
-        $query .= " AND b.is_audiobook = ?";
+        $baseQuery .= " AND b.is_audiobook = ?";
         $params[] = (int)$isAudiobook;
     }
     
-    $query .= " ORDER BY b.created_at DESC";
+    // When page param is provided, return paginated response
+    if ($page !== null) {
+        // Count total matching rows
+        $countStmt = $db->prepare("SELECT COUNT(*) as total " . $baseQuery);
+        $countStmt->execute($params);
+        $total = (int)$countStmt->fetch()['total'];
+        $totalPages = max(1, (int)ceil($total / $limit));
+        
+        // Fetch page
+        $offset = ($page - 1) * $limit;
+        $query = "SELECT b.*, s.name as series_name " . $baseQuery . " ORDER BY b.created_at DESC LIMIT ? OFFSET ?";
+        $pageParams = array_merge($params, [$limit, $offset]);
+        $stmt = $db->prepare($query);
+        $stmt->execute($pageParams);
+        $bokbad_books = $stmt->fetchAll();
+        $bokbad_books = array_map('serializeBook', $bokbad_books);
+        
+        sendSuccess([
+            'books' => $bokbad_books,
+            'page' => $page,
+            'limit' => $limit,
+            'total' => $total,
+            'totalPages' => $totalPages
+        ]);
+    }
     
+    // No page param: return all books (backward compatible)
+    $query = "SELECT b.*, s.name as series_name " . $baseQuery . " ORDER BY b.created_at DESC";
     $stmt = $db->prepare($query);
     $stmt->execute($params);
     $bokbad_books = $stmt->fetchAll();
-    
-    // Parse JSON fields and cast types
     $bokbad_books = array_map('serializeBook', $bokbad_books);
     
     sendSuccess(['books' => $bokbad_books]);

@@ -1,0 +1,2 @@
+# Deny web access to log files
+Deny from all

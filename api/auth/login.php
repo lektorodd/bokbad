@@ -49,6 +49,15 @@ if (!$user) {
        ->execute([$ip, $username]);
     
     $remaining = $maxAttempts - $attempts - 1;
+
+    // Log failed login via structured logger
+    require_once __DIR__ . '/../utils/logger.php';
+    Logger::warn('Login failed', [
+        'username' => $username,
+        'ip' => $ip,
+        'remainingAttempts' => $remaining,
+    ]);
+
     $msg = 'Invalid username or password';
     if ($remaining <= 2 && $remaining > 0) {
         $msg .= ' (' . $remaining . ' attempts remaining)';

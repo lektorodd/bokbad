@@ -3347,6 +3347,74 @@ h6 {
   transform: scale(0.98);
 }
 
+/* ===== Error Recovery Screen ===== */
+.error-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  z-index: 9999;
+  padding: var(--spacing-xl);
+}
+
+.error-screen-content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.error-screen-icon {
+  color: var(--color-danger);
+  margin-bottom: var(--spacing-lg);
+}
+
+.error-screen-title {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-sm);
+}
+
+.error-screen-message {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-xl);
+  line-height: 1.5;
+}
+
+.error-screen .btn {
+  min-width: 160px;
+  margin-bottom: var(--spacing-lg);
+}
+
+.error-screen-details {
+  text-align: left;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.error-screen-details summary {
+  cursor: pointer;
+  text-align: center;
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.error-screen-details pre {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-md);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.75rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
 /* ===== Toast Notifications ===== */
 .toast-container {
   position: fixed;
