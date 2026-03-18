@@ -4,6 +4,12 @@ import BookManager from './bookManager.js';
 import API from './api.js';
 import { Chart, registerables } from 'chart.js';
 import { t, getLocale, setLocale, initI18n } from './i18n.js';
+import { formatDate, formatDateRelative, formatDuration } from './utils/format.js';
+import {
+  GENRE_HIERARCHY,
+  normalizeGenres
+} from './utils/genre.js';
+import { escapeHtml, escapeAttribute, sanitizeImageUrl } from './utils/escapeHtml.js';
 
 // Register Chart.js components
 Chart.register(...registerables);
@@ -17,43 +23,7 @@ let currentGenres = [];
 let currentTopics = [];
 let currentAuthors = [];
 
-// Predefined genre keys — labels come from i18n (genres.xxx)
-const GENRE_HIERARCHY = {
-  fiction: [
-    'novel',
-    'thriller',
-    'mystery',
-    'scifi',
-    'fantasy',
-    'romance',
-    'horror',
-    'drama',
-    'classic',
-    'poetry',
-    'humor',
-    'ya',
-    'children',
-    'graphic'
-  ],
-  nonfiction: [
-    'biography',
-    'memoir',
-    'history',
-    'science',
-    'selfhelp',
-    'business',
-    'philosophy',
-    'health',
-    'politics',
-    'religion',
-    'travel',
-    'cooking',
-    'art',
-    'essays'
-  ]
-};
-
-const PREDEFINED_GENRES = [...GENRE_HIERARCHY.fiction, ...GENRE_HIERARCHY.nonfiction];
+// Genre hierarchy and normalization imported from ./utils/genre.js
 
 function getGenreLabel(key) {
   const label = t(`genres.${key}`);
@@ -61,89 +31,7 @@ function getGenreLabel(key) {
   return label && label !== `genres.${key}` ? label : key;
 }
 
-// Map a legacy free-text genre to a predefined key (case-insensitive)
-function normalizeGenreKey(rawGenre) {
-  const lower = rawGenre.trim().toLowerCase();
-  if (PREDEFINED_GENRES.includes(lower)) return lower;
-  // Try matching against English labels
-  const enLabels = {
-    fiction: 'fiction',
-    'non-fiction': 'nonfiction',
-    nonfiction: 'nonfiction',
-    biography: 'biography',
-    novel: 'novel',
-    thriller: 'thriller',
-    mystery: 'mystery',
-    'sci-fi': 'scifi',
-    scifi: 'scifi',
-    fantasy: 'fantasy',
-    history: 'history',
-    science: 'science',
-    'self-help': 'selfhelp',
-    selfhelp: 'selfhelp',
-    business: 'business',
-    philosophy: 'philosophy',
-    poetry: 'poetry',
-    "children's": 'children',
-    children: 'children',
-    'young adult': 'ya',
-    ya: 'ya',
-    humor: 'humor',
-    humour: 'humor',
-    travel: 'travel',
-    cooking: 'cooking',
-    art: 'art',
-    health: 'health',
-    religion: 'religion',
-    politics: 'politics',
-    memoir: 'memoir',
-    romance: 'romance',
-    horror: 'horror',
-    'graphic novel': 'graphic',
-    graphic: 'graphic',
-    essays: 'essays',
-    classic: 'classic',
-    drama: 'drama'
-  };
-  if (enLabels[lower]) return enLabels[lower];
-  // Try matching against Norwegian labels
-  const noLabels = {
-    skjønnlitteratur: 'fiction',
-    sakprosa: 'nonfiction',
-    biografi: 'biography',
-    roman: 'novel',
-    krim: 'mystery',
-    historie: 'history',
-    vitenskap: 'science',
-    selvhjelp: 'selfhelp',
-    næringsliv: 'business',
-    filosofi: 'philosophy',
-    poesi: 'poetry',
-    barnebøker: 'children',
-    ungdom: 'ya',
-    reise: 'travel',
-    'mat og drikke': 'cooking',
-    kunst: 'art',
-    helse: 'health',
-    politikk: 'politics',
-    memoar: 'memoir',
-    romantikk: 'romance',
-    skrekk: 'horror',
-    tegneserie: 'graphic',
-    essay: 'essays',
-    klassiker: 'classic'
-  };
-  if (noLabels[lower]) return noLabels[lower];
-  return lower; // fallback: keep as-is
-}
-
-function normalizeGenres(genres) {
-  if (!genres || !Array.isArray(genres)) return [];
-  const normalized = genres
-    .map((g) => normalizeGenreKey(g))
-    .filter((g) => g !== 'fiction' && g !== 'nonfiction'); // Strip legacy parent genres
-  return [...new Set(normalized)]; // deduplicate
-}
+// normalizeGenreKey and normalizeGenres imported from ./utils/genre.js
 
 function renderGenreSelectGrid(selectedGenres = []) {
   const container = document.getElementById('genre-select-grid');
@@ -228,44 +116,7 @@ function toggleDarkMode() {
 }
 
 // ============ Date Formatting ============
-function formatDate(dateStr, precision = 'day') {
-  if (!dateStr) return '';
-  try {
-    const date = new Date(dateStr + 'T12:00:00');
-    if (isNaN(date.getTime())) return dateStr;
-    const locale = getLocale() === 'no' ? 'nb' : getLocale();
-    if (precision === 'year') {
-      return date.getFullYear().toString();
-    }
-    if (precision === 'month') {
-      return new Intl.DateTimeFormat(locale, { month: 'short', year: 'numeric' }).format(date);
-    }
-    return new Intl.DateTimeFormat(locale, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
-  } catch {
-    return dateStr;
-  }
-}
-
-function formatDateRelative(dateStr) {
-  if (!dateStr) return '';
-  try {
-    const date = new Date(dateStr + 'T12:00:00');
-    if (isNaN(date.getTime())) return dateStr;
-    const now = new Date();
-    const diffMs = now - date;
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return t('time.today');
-    if (diffDays === 1) return t('time.yesterday');
-    if (diffDays <= 7) return t('time.daysAgo', { count: diffDays });
-    return formatDate(dateStr);
-  } catch {
-    return dateStr;
-  }
-}
+// formatDate and formatDateRelative imported from ./utils/format.js
 
 // Initialize app
 async function init() {
@@ -527,12 +378,7 @@ function updateFinishDateInput(precision) {
   wrapper.appendChild(newInput);
 }
 
-function formatDuration(totalMinutes) {
-  if (!totalMinutes) return `0${t('time.h')} 0${t('time.m')}`;
-  const h = Math.floor(totalMinutes / 60);
-  const m = totalMinutes % 60;
-  return h > 0 ? `${h}${t('time.h')} ${m}${t('time.m')}` : `${m}${t('time.m')}`;
-}
+// formatDuration imported from ./utils/format.js
 
 function setupLoginListeners() {
   const form = document.getElementById('login-form');
@@ -3615,36 +3461,7 @@ function debounce(func, wait) {
   };
 }
 
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-function escapeAttribute(value) {
-  return escapeHtml(value ?? '');
-}
-
-function sanitizeImageUrl(url) {
-  if (!url || typeof url !== 'string') return '';
-  const trimmed = url.trim();
-  if (!trimmed) return '';
-
-  if (trimmed.startsWith('/')) {
-    return trimmed;
-  }
-
-  try {
-    const parsed = new URL(trimmed, window.location.origin);
-    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
-      return parsed.href;
-    }
-  } catch {
-    return '';
-  }
-
-  return '';
-}
+// escapeHtml, escapeAttribute, sanitizeImageUrl imported from ./utils/escapeHtml.js
 
 // ============ Phase 7: Reading Goals ============
 async function loadGoalWidget() {

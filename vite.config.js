@@ -60,6 +60,9 @@ export default defineConfig({
             }
         }
     },
-    plugins: [swCacheVersionPlugin()]
+    plugins: [swCacheVersionPlugin()],
+    test: {
+        environment: 'jsdom'
+    }
 })
 
